@@ -1,3 +1,5 @@
 .stack-work/
 idris-python.cabal
 *~
+*.ibc
+*.o
