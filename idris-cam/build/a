@@ -1,20 +1,3 @@
-_Prelude.Show.firstCharIs_with_45 =>
-Fun(args=['{arg_0}', '{arg_1}', '{arg_2}'],
-    body=Let(
-                     bind='Loc 0',
-            expr=Var(name='{arg_0}'),
-            body=Let(bind='Loc 1',
-            expr=Var(name='{arg_1}'),
-            body=Let(bind='Loc 2',
-            expr=Var(name='{arg_2}'),
-            body=
-                If(cond=App(fn=Staged(value=<built-in function eq>),
-                            args=[
-                                Proj(major=Var(name='Loc 2'), ith=Const(value=0)),
-                                Const(value=1)
-                            ]),
-                            t_br=
-                                If(cond=App(fn=Staged(value=<built-in function eq>), args=[Var(name='Loc 2'), Const(value=0)]),
-                                   t_br=Const(value=None),
-                                   f_br=Const(value=0)),
-                            f_br=App(fn=Var(name='{APPLY_0}'), args=[Var(name='Loc 0'), Var(name='Loc 3')]))))))
+DFun Main.main
+[{in_0}] let {in_2} = let {in_1} =
+LWriteStr({in_0},  LStrConcat(LStrConcat("ahhhh", Prelude.Show.primNumShow(____, {U_prim__toStrInt_1}(), CON Prelude.Show.Open(), 2)), "\n")) in CON MkUnit() in CON MkUnit()

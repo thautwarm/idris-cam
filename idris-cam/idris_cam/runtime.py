@@ -3,18 +3,25 @@ Some staging objects for compilations of common abstract machine.
 """
 import operator
 import numpy as np
+from functools import update_wrapper
 
 
 def raise_(*args):
     raise RuntimeError(args)
+
 def throw(e):
     raise Exception(e)
+
+def str_concat(s1, s2):
+    return s1 + s2
+
 
 
 rt_support = {
     'idris-python-rt.cmp': operator.eq,
+    'idris-python-rt.check_case': lambda a, b, c, d: a == b and c == d,
 
-    'prim-plus': operator.add,
+    'prim-plus': lambda a,b : a + b,
     'prim-minus': operator.sub,
     'prim-times': operator.mul,
     'prim-udiv': operator.floordiv,
@@ -39,7 +46,7 @@ rt_support = {
 
     # EFFECT
     "prim-external": raise_,
-    'prim-writestr': lambda s: print(s, end=''),  # for supporting some rich consoles.
+    'prim-writestr': lambda a, b: print(a, b, end=''),  # for supporting some rich consoles.
     'prim-readstr': input,
 
     # CONVERSION
@@ -56,9 +63,7 @@ rt_support = {
     # STR METHOD2
     'prim-strhead': lambda s: s[0],
     'prim-strtail': lambda s: s[1:],
-    'prim-strcons': lambda a, b: a + b,
-    'prim-strconcat': operator.add,
-
-
+    'prim-strcons': lambda a, b: a + b if b else a,
+    'prim-strconcat': str_concat,
     'prim-crash': throw,
 }

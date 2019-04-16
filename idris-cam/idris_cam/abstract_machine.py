@@ -179,7 +179,7 @@ class Builder:
 
     @staticmethod
     def proj(major: Register, ith: Register, loc:Location):
-        return loc.update(ast.Subscript(value=major.to_ast(), slice=ast.Index(ith.to_ast())))
+        return loc.update(ast.Subscript(value=major.to_ast(), slice=ast.Index(ith.to_ast()), ctx=ast.Load()))
 
 class RegisterType(Enum):
     Constant = 0
@@ -382,11 +382,8 @@ def run_code(node, file=None):
 
         if isinstance(n, App):
             f = inner(n.fn, ctx)
-            try:
-                args = [inner(each, ctx) for each in n.args]
-            except Exception as e:
-                print(n)
-                raise e
+            args = [inner(each, ctx) for each in n.args]
+
             ret = ctx.new_register()
             ctx.code.append(ret.assign_ast(Builder.call(f, args, cur_loc)))
             return ret
