@@ -1,3 +1,0 @@
-DFun Main.main
-[{in_0}] let {in_2} = let {in_1} =
-LWriteStr({in_0},  LStrConcat(LStrConcat("ahhhh", Prelude.Show.primNumShow(____, {U_prim__toStrInt_1}(), CON Prelude.Show.Open(), 2)), "\n")) in CON MkUnit() in CON MkUnit()
