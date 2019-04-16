@@ -6,9 +6,11 @@ import Idris.Main
 import Idris.ModeCommon
 import Idris.REPL
 import Idris.Options
+import IRTS.Simplified
 
 import IRTS.Compiler
 import IRTS.CodegenPython
+import IRTS.CodegenCommon
 
 import System.Environment
 import System.Exit
@@ -18,7 +20,6 @@ import Control.Monad
 import Paths_idris_python
 
 data Opts = Opts { inputs :: [FilePath],
-                   interface :: Bool,
                    output :: FilePath }
 
 showUsage = do putStrLn "A code generator which is intended to be called by the compiler, not by a user."
@@ -27,20 +28,18 @@ showUsage = do putStrLn "A code generator which is intended to be called by the 
 
 getOpts :: IO Opts
 getOpts = do xs <- getArgs
-             return $ process (Opts [] False "a.out") xs
+             return $ process (Opts []  "a.out") xs
   where
     process opts ("-o":o:xs) = process (opts { output = o }) xs
-    process opts ("--interface":xs) = process (opts { interface = True }) xs
     process opts (x:xs) = process (opts { inputs = x:inputs opts }) xs
     process opts [] = opts
 
 c_main :: Opts -> Idris ()
 c_main opts = do elabPrims
                  loadInputs (inputs opts) Nothing
-                 mainProg <- if interface opts
-                                then liftM Just elabMain
-                                else return Nothing
+                 mainProg <- liftM Just elabMain
                  ir <- compile (Via IBCFormat "python") (output opts) mainProg
+                --  runIO $ forM_ (fmap (show . snd) (simpleDecls  ir)) putStrLn
                  runIO $ codegenPython ir
 
 main :: IO ()

@@ -230,6 +230,8 @@ class Scope:
         if not ret:
             # freevars in this language must be also python freevars
             ret = self.freevars.get(n)
+            if not ret:
+                raise NameError(n)
             ret_name = ret.name
             if ret_name in self.py_freevars:
                 self.py_used_freevars.add(ret_name)
@@ -295,7 +297,7 @@ def run_code(node, file=None):
             ith = inner(n.ith, ctx)
 
             v = ctx.new_register()
-            ctx.code.append(v.assign(Builder.proj(major, ith, cur_loc)))
+            ctx.code.append(v.assign_ast(Builder.proj(major, ith, cur_loc)))
             return v
 
         if isinstance(n, If):
@@ -380,7 +382,11 @@ def run_code(node, file=None):
 
         if isinstance(n, App):
             f = inner(n.fn, ctx)
-            args = [inner(each, ctx) for each in n.args]
+            try:
+                args = [inner(each, ctx) for each in n.args]
+            except Exception as e:
+                print(n)
+                raise e
             ret = ctx.new_register()
             ctx.code.append(ret.assign_ast(Builder.call(f, args, cur_loc)))
             return ret

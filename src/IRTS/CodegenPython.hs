@@ -31,6 +31,7 @@ data ComIR
     | ComTuple [ComIR]
     | ComProj ComIR ComIR
 
+    | ComBigInt Integer
     | ComInt Int
     | ComDouble Double
     | ComStr String
@@ -48,11 +49,22 @@ asThunk a = ComFun [] a
 
 codegenPython :: CodeGenerator
 codegenPython ci =
-    writeFile (outputFile ci) (encodeToLazyText . toJSON $ ir)
-    where ir = mkDecls . fmap snd $ simpleDecls ci
+    writeFile filename (encodeToLazyText . toJSON $ ir)
+    where
+        filename = outputFile ci
+        ir = mkDecls . fmap snd $ simpleDecls ci
+        t = map (showCG . fst) . simpleDecls $ ci
+
+localName i = show $ Loc i
 
 decl :: SDecl -> (String, ComIR)
-decl (SFun n ns _ body) = (showCG n, ComFun (fmap showCG ns) $ toIR body)
+decl (SFun n ns _ body) =
+    (showCG n, ComFun (fmap showCG ns) bindLocals)
+    where
+        bindLocals = foldr reducer (toIR body) $ zip infty ns
+        reducer (i, n) inside = ComLet (localName i)  (toIR n) inside
+        infty :: [Int]
+        infty = [0..]
 
 mkDecls :: [SDecl] -> ComIR -- top level let recs
 mkDecls xs =
@@ -79,38 +91,8 @@ instance HasIR Const where
         Fl d -> ComDouble d
         Ch c -> ComCh c
         Str s -> ComStr s
-        _ -> error "not impl"
-
-instance HasIR PrimFn where
-    toIR = \case
-        LPlus _ -> ComInternal "prim-op-plus"
-        LMinus _ -> ComInternal "prim-op-minus"
-        LTimes _ -> ComInternal "prim-op-times"
-        LUDiv _ -> ComInternal "prim-op-udiv"
-        LSDiv _ -> ComInternal "prim-op-sdiv"
-        LURem _ -> ComInternal "prim-op-urem"
-        LSRem _ -> ComInternal "prim-op-srem"
-        LAnd _ -> ComInternal "prim-op-and"
-        LOr  _ -> ComInternal "prim-op-or"
-        LXOr _ -> ComInternal "prim-op-xor"
-        LCompl _ -> ComInternal "prim-op-compl"
-        LSHL   _ -> ComInternal "prim-op-shl"
-        LLSHR   _ -> ComInternal "prim-op-lshr"
-        LASHR   _ -> ComInternal "prim-op-ashr"
-        LEq   _ -> ComInternal "prim-op-eq"
-        LLt   _ -> ComInternal "prim-op-lt"
-        LLe   _ -> ComInternal "prim-op-Le"
-        LGt   _ -> ComInternal "prim-op-gt"
-        LGe   _ -> ComInternal "prim-op-ge"
-        -- LSLt, LSLe, LSGt, LSGe, LSExt, LZExt, LTrunc
-        LStrConcat -> ComInternal "prim-op-str_concat"
-        -- LIntFloat, LFloatInt, LIntStr, LStrInt, LFloatStr, LStrFloat,
-        -- LChInt, LIntCh, LBitCast
-        -- 实锤idris弱类型语言
-        LFExp -> ComInternal "prim-op-exp"
-        LFNegate -> ComInternal "prim-op-neg"
-        LExternal a -> ComApp (ComInternal "prim-op-external") [toIR a]
-        a -> error $ "太多了, 8写了: " ++ show a
+        BI i -> ComBigInt i
+        a -> error $ "not impl: " ++ show a
 
 
 instance HasIR SExp where
@@ -150,3 +132,72 @@ instance HasIR SExp where
         SOp primfn vars   -> ComApp (toIR primfn) $ fmap toIR vars
         SNothing          -> ComNil -- will never be inspected
         SError s          -> ComApp pythonErr [ComStr s]
+
+instance HasIR PrimFn where
+    toIR = \case
+        LPlus _ -> ComInternal "prim-plus"
+        LMinus _ -> ComInternal "prim-minus"
+        LTimes _ -> ComInternal "prim-times"
+        LUDiv _ -> ComInternal "prim-udiv"
+        LSDiv _ -> ComInternal "prim-sdiv"
+        LURem _ -> ComInternal "prim-urem"
+        LSRem _ -> ComInternal "prim-srem"
+        LAnd _ -> ComInternal "prim-and"
+        LOr _ -> ComInternal "prim-or"
+        LXOr _ -> ComInternal "prim-xor"
+        LCompl _ -> ComInternal "prim-compl"
+        LSHL _ -> ComInternal "prim-shl"
+        LLSHR _ -> ComInternal "prim-lshr"
+        LASHR _ -> ComInternal "prim-ashr"
+        LEq _ -> ComInternal "prim-eq"
+        LLt _ -> ComInternal "prim-lt"
+        LLe _ -> ComInternal "prim-le"
+        LGt _ -> ComInternal "prim-gt"
+        LGe _ -> ComInternal "prim-ge"
+        LSLt _ -> ComInternal "prim-slt"
+        LSLe _ -> ComInternal "prim-sle"
+        LSGt _ -> ComInternal "prim-sgt"
+        LSGe _ -> ComInternal "prim-sge"
+        LSExt _ _ -> ComInternal "prim-sext"
+        LZExt _ _ -> ComInternal "prim-zext"
+        LTrunc _ _ -> ComInternal "prim-trunc"
+        LStrConcat  -> ComInternal "prim-strconcat"
+        LStrLt  -> ComInternal "prim-strlt"
+        LStrEq  -> ComInternal "prim-streq"
+        LStrLen  -> ComInternal "prim-strlen"
+        LIntFloat _ -> ComInternal "prim-intfloat"
+        LFloatInt _ -> ComInternal "prim-floatint"
+        LIntStr _ -> ComInternal "prim-intstr"
+        LStrInt _ -> ComInternal "prim-strint"
+        LFloatStr  -> ComInternal "prim-floatstr"
+        LStrFloat  -> ComInternal "prim-strfloat"
+        LChInt _ -> ComInternal "prim-chint"
+        LIntCh _ -> ComInternal "prim-intch"
+        LBitCast _ _ -> ComInternal "prim-bitcast"
+        LFExp  -> ComInternal "prim-fexp"
+        LFLog  -> ComInternal "prim-flog"
+        LFSin  -> ComInternal "prim-fsin"
+        LFCos  -> ComInternal "prim-fcos"
+        LFTan  -> ComInternal "prim-ftan"
+        LFASin  -> ComInternal "prim-fasin"
+        LFACos  -> ComInternal "prim-facos"
+        LFATan  -> ComInternal "prim-fatan"
+        LFATan2  -> ComInternal "prim-fatan2"
+        LFSqrt  -> ComInternal "prim-fsqrt"
+        LFFloor  -> ComInternal "prim-ffloor"
+        LFCeil  -> ComInternal "prim-fceil"
+        LFNegate  -> ComInternal "prim-fnegate"
+        LStrHead  -> ComInternal "prim-strhead"
+        LStrTail  -> ComInternal "prim-strtail"
+        LStrCons  -> ComInternal "prim-strcons"
+        LStrIndex  -> ComInternal "prim-strindex"
+        LStrRev  -> ComInternal "prim-strrev"
+        LStrSubstr  -> ComInternal "prim-strsubstr"
+        LReadStr  -> ComInternal "prim-readstr"
+        LWriteStr  -> ComInternal "prim-writestr"
+        LSystemInfo  -> ComInternal "prim-systeminfo"
+        LFork  -> ComInternal "prim-fork"
+        LPar  -> ComInternal "prim-par"
+        LExternal _ -> ComInternal "prim-external"
+        LCrash  -> ComInternal "prim-crash"
+        LNoOp  -> ComInternal "prim-noop"
