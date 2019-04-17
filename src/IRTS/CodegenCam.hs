@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module IRTS.CodegenPython(codegenPython) where
+module IRTS.CodegenCam(codegenCam) where
 import Data.Map.Strict (Map)
 import Prelude hiding (writeFile)
 import qualified Data.Map.Strict as Map
@@ -48,8 +48,8 @@ instance ToJSON ComIR where
 asThunk :: ComIR -> ComIR
 asThunk = ComFun []
 
-codegenPython :: CodeGenerator
-codegenPython ci =
+codegenCam :: CodeGenerator
+codegenCam ci =
     writeFile filename (encodeToLazyText . toJSON $ ir)
     where
         filename = outputFile ci
@@ -62,7 +62,7 @@ decl :: DDecl -> (String, ComIR)
 decl (DFun n ns body) =
     (showCG n, ComFun (fmap showCG ns) $ toIR body)
 decl (DConstructor n tag arity) =
-    (showCG n, ComFun argnames  $ ComTuple (ComStr (showCG n) : ComInt tag: fmap ComVar argnames))
+    (showCG n, ComFun argnames  $ ComTuple (ComStr (showCG n) : fmap ComVar argnames))
     where
         argnames = take arity  vars
 
@@ -70,9 +70,9 @@ mkDecls :: [DDecl] -> ComIR -- top level let recs
 mkDecls xs =
     ComLetrec (fmap decl xs) (ComApp (toIR $ sMN 0 "runMain") [])
 
-pythonErr = ComInternal "idris-python-rt.err"
-pythonCmp = ComInternal "idris-python-rt.cmp"
-pythonCheckCase = ComInternal "idris-python-rt.check_case"
+camErr = ComInternal "idris-cam-rt.err"
+camCmp = ComInternal "idris-cam-rt.cmp"
+
 
 class HasIR a where
     toIR :: a -> ComIR
@@ -95,41 +95,35 @@ instance HasIR DExp where
     toIR = \case
         DV name            -> toIR name
         DApp _ name args   -> ComApp (toIR name) $ fmap toIR args
-        DLet name v body    -> ComLet (showCG name) (toIR v) (toIR body)
-        DUpdate name body   -> ComMutate (showCG name) (toIR body)
+        DLet name v body   -> ComLet (showCG name) (toIR v) (toIR body)
+        DUpdate name body  -> ComMutate (showCG name) (toIR body)
         -- DC _ i name []      -> ComInt i
-        DC _ i name args    -> ComTuple $ ComStr (showCG name) : ComInt i : fmap toIR args
-        DCase _ var' alts  -> foldl reducer ComNil alts where
-                var = toIR var'
-                reducer s = \case
-                    DConCase i n ns body ->
-                            let capturing = foldr reducer (toIR body) (zip ns [2 ..])
-                                casename = showCG n
-                                reducer (n, i) = ComLet (showCG n) (ComProj var $ ComInt i)
-                                cond = ComApp pythonCmp [ComStr casename, ComProj var $ ComInt 0]
-                            in  ComIf cond capturing s
-                    DConstCase const body ->
-                        ComIf (ComApp pythonCmp [var, toIR const]) (toIR body) s
-                    DDefaultCase body -> toIR body
+        DC _ i name args   -> ComTuple $ ComStr (showCG name) : fmap toIR args
+        DCase _ var' alts  -> patternMatchComp var' alts
         -- temporarily I treat SChkCase as SCase, for I don't know their diffs accurately.
-        DChkCase var' alts  -> foldl reducer ComNil alts where
-            var = toIR var'
-            reducer s = \case
-                DConCase i n ns body ->
-                    let capturing = foldr reducer (toIR body) (zip ns [2 ..])
-                        casename = showCG n
-                        reducer (n, i) = ComLet (showCG n) (ComProj var $ ComInt i)
-                        cond = ComApp pythonCmp [ComStr casename, ComProj var $ ComInt 0]
-                    in  ComIf cond capturing s
-                DConstCase const body ->
-                    ComIf (ComApp pythonCmp [var, toIR const]) (toIR body) s
-                DDefaultCase body -> toIR body
-        DProj var i       -> ComProj (toIR var) (ComInt i)
-        DConst const      -> toIR const
-        DForeign a b c    -> error $ "SForeign " ++ show a ++ " " ++ show b ++ " " ++ show c
-        DOp primfn vars   -> ComApp (toIR primfn) $ fmap toIR vars
-        DNothing          -> ComStr "" -- will never be inspected
-        DError s          -> ComApp pythonErr [ComStr s]
+        DChkCase var' alts -> patternMatchComp var' alts
+        DProj var i        -> ComProj (toIR var) (ComInt i)
+        DConst const       -> toIR const
+        DForeign a b c     -> error $ "invoking SForeign " ++ show a ++ " " ++ show b ++ " " ++ show c
+        DOp primfn vars    -> ComApp (toIR primfn) $ fmap toIR vars
+        DNothing           -> ComNil -- will never be inspected
+        DError s           -> ComApp camErr [ComStr s]
+
+patternMatchComp var' alts = recur alts where
+    var = toIR var'
+    recur [] = ComNil
+    recur (x:xs) =
+        let tail = recur xs
+        in case x of
+            DConCase _ n ns body ->
+                let capturing = foldr reducer (toIR body) (zip ns [1 ..])
+                    casename = showCG n
+                    reducer (n, i) = ComLet (showCG n) (ComProj var $ ComInt i)
+                    cond = ComApp camCmp [ComStr casename, ComProj var $  ComInt 0]
+                in ComIf cond capturing tail
+            DConstCase const body ->
+                ComIf (ComApp camCmp [var, toIR const]) (toIR body) tail
+            DDefaultCase body -> toIR body
 
 instance HasIR PrimFn where
     toIR = \case

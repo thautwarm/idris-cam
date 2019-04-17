@@ -1,0 +1,57 @@
+cabal-version: >= 1.18
+name:           idris-cam
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/thautwarm/idris-cam#readme>
+homepage:       https://github.com/thautwarm/idris-cam#readme
+bug-reports:    https://github.com/thautwarm/idris-cam/issues
+author:         thautwarm
+maintainer:     twshere@outlook.com
+copyright:      MIT
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    -- rts/*
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/thautwarm/idris-cam
+
+executable idris-codegen-cam
+   main-is: Main.hs
+   other-modules:
+      IRTS.CodegenCam
+   hs-source-dirs:
+      src
+   build-depends:
+      idris
+      , base
+      , containers
+      , directory
+      , filepath
+      , haskeline >= 0.7
+      , mtl
+      , transformers
+      , aeson
+      , text
+
+   if os(linux)
+      cpp-options:   -DLINUX
+      build-depends: unix < 2.8
+   if os(freebsd)
+      cpp-options:   -DFREEBSD
+      build-depends: unix < 2.8
+   if os(dragonfly)
+      cpp-options:   -DDRAGONFLY
+      build-depends: unix < 2.8
+   if os(darwin)
+      cpp-options:   -DMACOSX
+      build-depends: unix < 2.8
+   if os(windows)
+      cpp-options:   -DWINDOWS
+      build-depends: Win32 < 2.4
+
+   ghc-prof-options: -auto-all -caf-all
+   ghc-options:      -threaded -rtsopts -funbox-strict-fields

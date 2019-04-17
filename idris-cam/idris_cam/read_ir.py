@@ -27,7 +27,7 @@ def com_while(cs):
 
 
 def com_mutate(cs):
-    return Mutate(cs[0], aeson_to_ir(cs[1]))
+    return Mutate(Var(cs[0]), aeson_to_ir(cs[1]))
 
 
 def com_fun(cs):
@@ -62,6 +62,14 @@ def com_internal(cs):
     return Staged(rt_support[cs])
 
 
+def com_ch(cs):
+    return Const(cs)
+
+
+def com_str(cs):
+    return Const(eval(repr(cs).replace(r'\\', '\\')))
+
+
 switch = {
     'ComLet': com_let,
     'ComLetrec': com_letrec,
@@ -79,7 +87,7 @@ switch = {
     'ComDouble': com_const,
     'ComCh': com_const,
     'ComBool': com_const,
-    'ComStr': com_const,
+    'ComStr': com_str,
     'ComNil': None,
     'ComInternal': com_internal
 }

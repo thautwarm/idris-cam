@@ -9,20 +9,20 @@ import Idris.Options
 import IRTS.Simplified
 
 import IRTS.Compiler
-import IRTS.CodegenPython
+import IRTS.CodegenCam
 import IRTS.CodegenCommon
 
 import System.Environment
 import System.Exit
 import Control.Monad
 
-import Paths_idris_python
+import Paths_idris_cam
 
 data Opts = Opts { inputs :: [FilePath],
                    output :: FilePath }
 
 showUsage = do putStrLn "A code generator which is intended to be called by the compiler, not by a user."
-               putStrLn "Usage: idris-codegen-python <ibc-files> [-o <output-file>]"
+               putStrLn "Usage: idris-codegen-cam <ibc-files> [-o <output-file>]"
                exitSuccess
 
 getOpts :: IO Opts
@@ -32,16 +32,16 @@ getOpts = process (Opts []  "a.out") <$> getArgs
     process opts (x:xs) = process (opts { inputs = x:inputs opts }) xs
     process opts [] = opts
 
-c_main :: Opts -> Idris ()
-c_main opts = do elabPrims
+cMain :: Opts -> Idris ()
+cMain opts = do  elabPrims
                  loadInputs (inputs opts) Nothing
                  mainProg <- fmap Just elabMain
-                 ir <- compile (Via IBCFormat "python") (output opts) mainProg
-                 runIO $ forM_ (fmap (show . snd) (defunDecls  ir)) putStrLn
-                 runIO $ codegenPython ir
+                 ir <- compile (Via IBCFormat "cam") (output opts) mainProg
+                --  runIO $ forM_ (fmap (show . snd) (defunDecls  ir)) putStrLn
+                 runIO $ codegenCam ir
 
 main :: IO ()
 main = do opts <- getOpts
           if null (inputs opts)
              then showUsage
-             else  runMain (c_main opts)
+             else  runMain (cMain opts)
