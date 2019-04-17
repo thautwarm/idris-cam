@@ -68,7 +68,7 @@ which produces
 
 ## Features(listed by priorities)
 
-- [x] An abstraction of some immediate representations(common abstract machine, aka CAM)
+- [x] An abstraction of some intermediate representations(common abstract machine, aka CAM)
 - [x] Back end: Python AST
 - [ ] Back end: Julia AST
 - [ ] Persisting locations with Idris IRs, like DDecls.
