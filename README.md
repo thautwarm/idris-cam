@@ -40,11 +40,11 @@ Then compile it to CAM IR.
 stack exec idris -- --codegen=cam ./examples/a.idr -o ./examples/a.cam
 ```
 
-Finally, write a Python script, append `$Project/idris-cam` into **PYTHONPATH**, like:
+Finally, write a Python script, append `$Project/cam-python` into **PYTHONPATH**, like:
 
 ```python
 import sys
-sys.path.append('idris-cam')
+sys.path.append('cam-python')
 
 from idris_cam.read_ir import *
 import json
