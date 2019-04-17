@@ -13,7 +13,7 @@ A framework for Idris RTS.
 
 ### Run
 
-Write a Idris script, named `a.idr`:
+Write an Idris script, named `a.idr`:
 
 ```idris
 module Main
