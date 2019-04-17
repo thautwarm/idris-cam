@@ -74,7 +74,7 @@ which produces
 - [ ] Persisting locations with Idris IRs, like DDecls.
 - [ ] Python standard libraries
 - [ ] FFI
-- [ ] Tail call emilation
+- [ ] Tail call elimation
 - [ ] Back end: Python Bytecode
 - [ ] Specializations for some primitive data types
 - [ ] Incremental compilation
