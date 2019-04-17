@@ -69,11 +69,11 @@ which produces
 ## Features(listed by priorities)
 
 - [x] Back end: Python AST
-- [] Back end: Julia AST
-- [] Persisting locations with Idris IRs, like DDecls.
-- [] Python standard libraries
-- [] FFI
-- [] Tail call emilation
-- [] Back end: Python Bytecode
-- [] Specializations for some primitive data types
-- [] Incremental compilation
+- [ ] Back end: Julia AST
+- [ ] Persisting locations with Idris IRs, like DDecls.
+- [ ] Python standard libraries
+- [ ] FFI
+- [ ] Tail call emilation
+- [ ] Back end: Python Bytecode
+- [ ] Specializations for some primitive data types
+- [ ] Incremental compilation
