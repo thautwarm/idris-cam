@@ -1,6 +1,7 @@
 module CAM
 using MLStyle
 using MLStyle.Infras: @format, mangle
+
 include("Runtime.jl")
 
 
@@ -74,7 +75,7 @@ def_pattern(CAM,
     NilConst()
 
     Internal(String)
-    Located(line::Int, column::Int, value::IR)
+    Located(fname::Union{Nothing, String}, line::Int, column::Int, value::IR)
 end
 
 @active Sym(x) begin
@@ -114,7 +115,11 @@ ir_to_julia(ir::IR) =
             :($c)
         NilConst => :nothing # kind of tricky for Julia use :nothing to represent nothing in ASTs
 
-        ConstInternal(s) => rt_support[s]
+        Internal(s) => rt_support[s]
+        Located(fname, lineno, _, Julia(value)) => # colno doesn't have an effect in current julia.
+            let lineno = LineNumberNode(lineno, fname)
+                :(begin $lineno; $value end)
+            end
     end
 
 
