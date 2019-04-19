@@ -21,7 +21,7 @@ data Com : Type -> Type where
     ComInt    : Com Int    -- bit -> type
     ComUInt   : Com UInt   -- an example of extensive primitive type impl
     ComPtr    : Com Ptr
-    ComChar   : Com Char   -- bit -> typCFFI_Cam
+    ComChar   : Com Char
 
 public export
 FFICam : FFI
