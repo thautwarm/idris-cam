@@ -109,7 +109,7 @@ instance HasIR DExp where
         DNothing           -> ComNil -- will never be inspected
         DError s           -> ComApp camErr [ComStr s]
 
-patternMatchComp var' alts = recur alts where
+patternMatchComp var' = recur where
     var = toIR var'
     recur [] = ComNil
     recur (x:xs) =
