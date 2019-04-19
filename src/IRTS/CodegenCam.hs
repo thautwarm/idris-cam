@@ -104,7 +104,16 @@ instance HasIR DExp where
         DChkCase var' alts -> patternMatchComp var' alts
         DProj var i        -> ComProj (toIR var) (ComInt i)
         DConst const       -> toIR const
-        DForeign a b c     -> error $ "invoking SForeign " ++ show a ++ " " ++ show b ++ " " ++ show c
+        DForeign retTy fname [(argTy, arg)] ->
+            case fname of
+                FApp n [FStr name] | show n == "Builtin" ->
+                        ComInternal $ "builtin-" ++ name
+                FApp n [FStr mod, FStr name] | show n == "Library" ->
+                        ComApp (ComInternal "builtin-module_property") [
+                            ComStr mod,
+                            ComStr name
+                        ]
+
         DOp primfn vars    -> ComApp (toIR primfn) $ fmap toIR vars
         DNothing           -> ComNil -- will never be inspected
         DError s           -> ComApp camErr [ComStr s]

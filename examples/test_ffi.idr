@@ -13,38 +13,51 @@ public export
 unsigned : Int -> UInt
 unsigned = MkUInt
 
-public export
-data Com : Type -> Type where
-    ComUnit   : Com ()
-    ComStr    : Com String
-    ComDouble : Com Double -- bit -> type
-    ComInt    : Com Int    -- bit -> type
-    ComUInt   : Com UInt   -- an example of extensive primitive type impl
-    ComPtr    : Com Ptr
-    ComChar   : Com Char
+mutual
+    public export
+    data Com_Fn t = MkComFn t
 
-public export
-FFICam : FFI
-FFICam = MkFFI Com String String
+    public export
+    data Com_Raw t = MkComRaw t
 
-public export
-CamIO : Type -> Type
-CamIO = IO' FFICam
+    public export
+    data Com_FunTypes : Type -> Type where
+        Com_Fun       : Com s -> Com_FunTypes t -> Com_FunTypes (s -> t)
+        Com_FnIO      : Com t -> Com_FunTypes (CamIO t)
+        Com_FnBase    : Com t -> Com_FunTypes t
 
-readFile : String -> CamIO String
-readFile = foreign FFICam "read" (String -> CamIO String)
+    public export
+    data Com : Type -> Type where
+        ComUnit   : Com ()
+        ComStr    : Com String
+        ComDouble : Com Double -- bit -> type
+        ComInt    : Com Int    -- bit -> type
+        ComUInt   : Com UInt   -- an example of extensive primitive type impl
+        ComPtr    : Com Ptr
+        ComFun    : Com_FunTypes a -> Com (Com_Fn a)
+        ComChar   : Com Char
+        ComRaw    : Com (Com_Raw a)
+
+    public export
+    data ForeignName
+       = Builtin String
+       | Library String String
 
 
-do_fopen : String -> String -> CamIO Ptr
-do_fopen f m
-   = foreign FFICam "open" (String -> String -> CamIO Ptr) f m
+    public export
+    FFICam : FFI
+    FFICam = MkFFI Com ForeignName String
 
+    public export
+    CamIO : Type -> Type
+    CamIO = IO' FFICam
 
-getErrno : CamIO Int
-getErrno = foreign FFICam "idris_errno" (CamIO Int)
+%inline
+camCall: (ty : Type) -> (fname : ForeignName) -> {auto fty : FTy FFICam [] ty} -> ty
+camCall ty fname = foreign FFICam fname ty
 
 
 main : CamIO ()
 main = do
-    f <- do_fopen "a" "rb"
-    pure $ ()
+    a <- camCall (Int-> CamIO Double) (Builtin "oop") 2
+    pure ()
