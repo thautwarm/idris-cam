@@ -113,6 +113,7 @@ instance HasIR DExp where
                             ComStr mod,
                             ComStr name
                         ]
+                _ -> errorWithoutStackTrace "Not supported FFI ops"
 
         DOp primfn vars    -> ComApp (toIR primfn) $ fmap toIR vars
         DNothing           -> ComNil -- will never be inspected
