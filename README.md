@@ -96,6 +96,7 @@ A framework for Idris RTS.
     sys.path.append('..')
 
     from idris_cam.read_ir import *
+
     class Test(unittest.TestCase):
         def test_too_known(self):
             with open('./test.cam', 'r') as f:
