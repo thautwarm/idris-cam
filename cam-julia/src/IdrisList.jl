@@ -72,6 +72,10 @@ function foreach(f::Function, xs::IdrisCons{A}) where A
     return
 end
 
+Base.print(io::IO, x::IdrisNil{Char}) = Base.print(io, "")
+Base.print(io::IO, x::IdrisCons{Char}) = foreach(x) do c
+    print(io, c)
+end
 
 Base.show(io::IO, x::IdrisNil{Char}) = Base.show("")
 Base.show(io::IO, x::IdrisCons{Char}) = Base.show(io, String(collect(x)))
@@ -94,13 +98,22 @@ end
 
 ^(c::Elt, s::S) where {Elt, S <: AbstractIdrisList{Elt}} = IdrisCons{Elt}(c, s)
 
+export from_text
+function from_text(s :: String)
+    ret = IdrisNil{Char}()
+    foreach(reverse(s)) do c
+        ret = c ^ ret
+    end
+    ret
+end
+
 export string_head
 string_head(::IdrisNil{Char}) = throw("Empty String cannot extract head")
 string_head(xs::IdrisCons{Char}) :: Char = xs.head
 
 export string_tail
-string_head(::IdrisNil{Char}) = throw("Empty String cannot extract tail")
-string_head(xs::IdrisCons{Char}) = xs.tail
+string_tail(::IdrisNil{Char}) = throw("Empty String cannot extract tail")
+string_tail(xs::IdrisCons{Char}) = xs.tail
 
 
 export string_concat
@@ -148,8 +161,8 @@ end
     end
 
 
-println(1 ^ 2 ^ IdrisNil{Int}())
+# println(1 ^ 2 ^ IdrisNil{Int}())
 
-println('1' ^ '2' ^ IdrisNil{Char}())
+# println('1' ^ '2' ^ IdrisNil{Char}())
 
 end

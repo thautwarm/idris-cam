@@ -7,7 +7,7 @@ A framework for Idris RTS.
 
 - [x] An abstraction of some intermediate representations(common abstract machine, aka CAM)
 - [x] Back end: Python AST
-- [ ] Back end: Julia AST
+- [x] Back end: Julia AST
 - [ ] Persisting locations with Idris IRs, like DDecls.
 - [ ] Python standard libraries
 - [x] Handy FFI
@@ -16,7 +16,7 @@ A framework for Idris RTS.
 - [ ] Specializations for some primitive data types
 - [ ] Incremental compilation
 
-## Build and Run
+## Build && Cam Codegen
 
 - Build
 
@@ -25,67 +25,113 @@ A framework for Idris RTS.
     stack build
     ```
 
-### Run
+- Codegen
 
-Write an Idris script, named `a.idr`:
+    ```
+    stack exec idris -- --codegen=cam <input idris files> -o <output cam file>
+    ```
 
-```idris
-module Main
-import Data.Vect
 
-public export
+## Python & Julia Example
 
-len : Vect n a -> Int
-len {n=Z} [] = 0
-len {n=S k} (with Vect x::xs) = 1 + len xs
 
-v : Vect ?n Int
-v = [1, 2, 3]
+1. Check file [examples/test_ffi.idr](https://github.com/thautwarm/idris-cam/blob/master/examples/test_ffi.idr), the main is
 
-main : IO ()
-main = do
-    putStrLn . show $ len v
-    putStrLn .show  $ with List ["a"]
-    pure ()
-```
+    ```idris
+    main : CamIO ()
+    main = do
+        fh <- openFile "./text.txt"
+        s <- readFile fh
+        println s
+    ```
 
-Then compile it to CAM IR.
-```
-stack exec idris -- --codegen=cam ./examples/a.idr -o ./examples/a.cam
-```
+2. Generate `.cam` files via idris-codegen.
 
-Finally, write a Python script, append `$Project/cam-python` into **PYTHONPATH**, like:
+    ```
+    stack exec idris -- --codegen=cam ./examples/test_ffi.idr -o ./cam-julia/test/test.cam
 
-```python
-import sys
-sys.path.append('cam-python')
+    stack exec idris -- --codegen=cam ./examples/test_ffi.idr -o ./cam-python/test/test.cam
+    ```
 
-from idris_cam.read_ir import *
-import json
+3. Test Julia, check [can-julia/test/runtests.jl](https://github.com/thautwarm/idris-cam/tree/master/cam-julia/test/runtests.jl)
 
-with open('examples/a.cam', 'r') as f:
-    js = json.load(f)
+    ```julia
+    using CamJulia
 
-letrec: LetRec = aeson_to_ir(js)
-# uncomment to show pretty printed CAM IRs.
-# letrec.dump(0, None)
-# print()
-run_code(letrec)
-```
-which produces
-```
-3
-["a"]
-```
+    module A
+    end
+    macro load_cam(path)
+        aeson = CamJulia.ReadIR.load_aeson(path);
+
+        ir = CamJulia.ReadIR.aeson_to_ir(aeson)
+
+        CamJulia.CAM.ir_to_julia(ir)
+    end
+
+    @load_cam "./test.cam"
+    ```
+
+    You'd open julia-shell in `cam-julia` directory, then
+
+    ```
+    julia> ]
+    pkg> activate .
+    CamJulia> instantiate
+    CamJulia> test
+       Testing CamJulia
+    Resolving package versions...
+        啊，太懂了！太懂Idris Julia辣！
+    Testing CamJulia tests passed
+    ```
+
+    The output text is from `text.txt` located in cam-julia/test/text.txt.
+
+4. Test Python, check [cam-python/test/test.py](https://github.com/thautwarm/idris-cam/tree/master/cam-python/test/test.py),
+
+    ```python
+    import sys
+    import os
+    import json
+    import unittest
+    sys.path.append('..')
+
+    from idris_cam.read_ir import *
+    class Test(unittest.TestCase):
+        def test_too_known(self):
+            with open('./test.cam', 'r') as f:
+                js = json.load(f)
+
+            letrec: LetRec = aeson_to_ir(js)
+            # a = dict(letrec.seqs)
+            # print(a['Main.println'])
+            # print(a['Main.main'])
+
+
+            #.dump(0, None)
+            # print()
+            run_code(letrec)
+            return
+
+    unittest.main()
+    ```
+
+    Then go to directory `cam-python/test`, run
+    ```
+    python test.py
+
+    啊，太懂了！太懂Idris Python辣！
+    .
+    ----------------------------------------------------------------------
+    Ran 1 test in 0.086s
+
+    OK
+    ```
 
 ## FFI Mechansim
 
 
 The task about [New Foreign Function Interface](http://docs.idris-lang.org/en/latest/reference/ffi.html)
 makes this handy FFI feasible.
-
-## Builtin
-
 
 ### Idris Side
 
@@ -129,12 +175,4 @@ rt_support = {
     'builtin-simple_open': open,
     'builtin-simple_read': lambda x: x.read()
 }
-```
-
-### Test your codes
-
-```
-stack exec idris -- --codegen=cam ./example/test_ffi -o ./example/test_ffi.cam
-
-python cam-python/test/a.py
 ```

@@ -71,6 +71,6 @@ readFile handle = camCall (Com_Raw FileHandler -> CamIO String) (Builtin "simple
 
 main : CamIO ()
 main = do
-    fh <- openFile "./examples/a.idr"
+    fh <- openFile "./text.txt"
     s <- readFile fh
     println s

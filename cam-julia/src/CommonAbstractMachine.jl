@@ -1,8 +1,8 @@
 module CAM
 using MLStyle
 using MLStyle.Infras: @format, mangle
-
-include("Runtime.jl")
+using CamJulia.Runtime
+import CamJulia
 
 
 @use Enum # replace `S() => ...` with `S => ...`
@@ -53,6 +53,13 @@ def_pattern(CAM,
     end
 )
 
+export IR, Let, LetRec, If, While, Mutate, Fun
+export App, Var, Block, Join, Proj
+export BigIntConst, IntConst, DoubleConst
+export StrConst, ChConst, BoolConst, NilConst
+export Internal, Located
+
+
 @data IR begin
     Let(String, IR, IR)
     LetRec(Vector{Tuple{String, IR}}, IR)
@@ -78,7 +85,7 @@ def_pattern(CAM,
     Located(fname::Union{Nothing, String}, line::Int, column::Int, value::IR)
 end
 
-@active Sym(x) begin
+@active Sym(x :: String) begin
     Symbol(x)
 end
 
@@ -86,13 +93,26 @@ end
     ir_to_julia(x)
 end
 
+export ir_to_julia
+
+@active LetToDef(tp) begin
+    @match tp begin
+        (Sym(fname), Fun([Sym(arg) for arg in args], Julia(body))) =>
+        :($fname($(args...), ) = $body)
+    end
+end
 
 ir_to_julia(ir::IR) =
     @match ir begin
+        Var(Sym(sym)) => sym
+        # Let(Sym(fn_name), Fun([Sym(arg) for arg in args], Julia(fn_body)), Julia(body)) =>
+        #     :(let $fn_name($(args...), ) = $fn_body; $body end)
         Let(Sym(s), Julia(value), Julia(body)) =>
             :(let $s = $value; $body end)
-        LetRec([(Sym(fst), Julia(snd)) for (:($fst = $snd)) in seq], Julia(value)) =>
-            :(let $(seq...); $value end)
+
+        # letrec: bindings must be all functions
+        LetRec([LetToDef(tp) for tp in seq], Julia(value)) =>
+            Expr(:block, seq..., value)
         If(Julia(cond), Julia(iftrue), Julia(iffalse)) =>
             :(if $cond; $iftrue else $iffalse end)
         While(Julia(cond), Julia(body)) =>
@@ -100,7 +120,7 @@ ir_to_julia(ir::IR) =
         Mutate(Sym(s), Julia(value)) =>
             :($s = $value)
         Fun([Sym(s) for s in args], Julia(body)) =>
-            :(function ($(args...), )  $body end)
+            :(function ($(args...), ) $body end)
         App(Julia(fn), [Julia(arg) for arg in args]) =>
             :($fn($(args...), ))
         Block([Julia(expr) for expr in seq]) =>
@@ -109,9 +129,14 @@ ir_to_julia(ir::IR) =
             :($(elts..., ))
         Proj(Julia(major), Julia(ith)) =>
             :($major[$ith])
+
+        StrConst(c) => foldr(c, init=CamJulia.IdrisList.IdrisNil{Char}()) do each, prev
+            each ^ prev
+        end
+
         BigIntConst(c) || IntConst(c) || DoubleConst(c) ||
         # TODO: str const needs to be unescaped, e.g., '\\a' -> '\a'
-        StrConst(c) || ChConst(c) || BoolConst(c) =>
+        ChConst(c) || BoolConst(c) =>
             :($c)
         NilConst => :nothing # kind of tricky for Julia use :nothing to represent nothing in ASTs
 
@@ -120,8 +145,6 @@ ir_to_julia(ir::IR) =
             let lineno = LineNumberNode(lineno, fname)
                 :(begin $lineno; $value end)
             end
+        a => throw(a)
     end
-
-
-
 end
