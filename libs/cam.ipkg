@@ -1,0 +1,9 @@
+package cam
+
+modules = Cam.FFI
+        , Cam.OS.Platform
+        , Cam.OS.FileSystem
+        , Cam.Data.Compat
+        , Test.Simple
+
+tests = Test.Simple.testSimple
