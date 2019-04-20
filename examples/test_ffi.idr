@@ -52,12 +52,25 @@ mutual
     CamIO : Type -> Type
     CamIO = IO' FFICam
 
+
 %inline
 camCall: (ty : Type) -> (fname : ForeignName) -> {auto fty : FTy FFICam [] ty} -> ty
 camCall ty fname = foreign FFICam fname ty
 
+println : String -> CamIO ()
+println s = camCall (String -> CamIO ()) (Builtin "println") s
+
+data FileHandler;
+
+openFile : String -> CamIO (Com_Raw FileHandler)
+openFile filename = camCall (String -> CamIO (Com_Raw FileHandler)) (Builtin "simple_open") filename
+
+readFile : Com_Raw FileHandler -> CamIO String
+readFile handle = camCall (Com_Raw FileHandler -> CamIO String) (Builtin "simple_read") handle
+
 
 main : CamIO ()
 main = do
-    a <- camCall (Int-> CamIO Double) (Builtin "oop") 2
-    pure ()
+    fh <- openFile "./examples/a.idr"
+    s <- readFile fh
+    println s

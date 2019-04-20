@@ -29,7 +29,6 @@ def write_str(io, a):
 def cmp(a, b):
     return a == b
 
-
 rt_support = {
     'idris-cam-rt.cmp': cmp,
 
@@ -76,4 +75,10 @@ rt_support = {
     'prim-strcons': str_cons,
     'prim-strconcat': str_concat,
     'prim-crash': throw,
+
+    'builtin-getattr': getattr,
+    'builtin-map': map,
+    'builtin-println': print,
+    'builtin-simple_open': open,
+    'builtin-simple_read': lambda x: x.read()
 }

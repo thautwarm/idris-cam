@@ -2,6 +2,20 @@
 
 A framework for Idris RTS.
 
+
+## Features(listed by priorities)
+
+- [x] An abstraction of some intermediate representations(common abstract machine, aka CAM)
+- [x] Back end: Python AST
+- [ ] Back end: Julia AST
+- [ ] Persisting locations with Idris IRs, like DDecls.
+- [ ] Python standard libraries
+- [x] Handy FFI
+- [ ] Tail call elimation
+- [ ] Back end: Python Bytecode
+- [ ] Specializations for some primitive data types
+- [ ] Incremental compilation
+
 ## Build and Run
 
 - Build
@@ -64,17 +78,63 @@ which produces
 ["a"]
 ```
 
+## FFI Mechansim
 
 
-## Features(listed by priorities)
+The task about [New Foreign Function Interface](http://docs.idris-lang.org/en/latest/reference/ffi.html)
+makes this handy FFI feasible.
 
-- [x] An abstraction of some intermediate representations(common abstract machine, aka CAM)
-- [x] Back end: Python AST
-- [ ] Back end: Julia AST
-- [ ] Persisting locations with Idris IRs, like DDecls.
-- [ ] Python standard libraries
-- [ ] FFI
-- [ ] Tail call elimation
-- [ ] Back end: Python Bytecode
-- [ ] Specializations for some primitive data types
-- [ ] Incremental compilation
+## Builtin
+
+
+### Idris Side
+
+In Idris side, we have made a FFI implementation for Idris-CAM, and then you can
+declare foreign functions via such codes:
+
+```idris
+println : String -> CamIO ()
+println s = camCall (String -> CamIO ()) (Builtin "println") s
+
+data FileHandler;
+
+openFile : String -> CamIO (Com_Raw FileHandler)
+openFile filename = camCall (String -> CamIO (Com_Raw FileHandler)) (Builtin "simple_open") filename
+
+readFile : Com_Raw FileHandler -> CamIO String
+readFile handle = camCall (Com_Raw FileHandler -> CamIO String) (Builtin "simple_read") handle
+```
+
+Above codes are placed at [examples/test_ffi.cam](https://github.com/thautwarm/idris-cam/blob/master/examples/test_ffi.idr), and I'll make Idris libraries for both Julia and Python sooner.
+
+
+### Target Back End
+
+We have already Julia and Python back ends, and Python's is already available, so we use Python to demonstrate how
+to setup FFI.
+
+Note that we referenced `println`, `simple_open` and `simple_read` as builtin functions in previous Idris codes.
+
+So we update `cam-python/idris-cam/runtime.py`, add their
+implementations:
+
+```python
+rt_support = {
+    'idris-cam-rt.cmp': cmp,
+
+    'prim-plus': operator.add,
+    'prim-minus': operator.sub,
+    ...
+    'builtin-println': print,
+    'builtin-simple_open': open,
+    'builtin-simple_read': lambda x: x.read()
+}
+```
+
+### Test your codes
+
+```
+stack exec idris -- --codegen=cam ./example/test_ffi -o ./example/test_ffi.cam
+
+python cam-python/test/a.py
+```
