@@ -11,7 +11,7 @@ A framework for Idris RTS.
 - [ ] Persisting locations with Idris IRs, like DDecls.
 - [ ] Python standard libraries
 - [x] Handy FFI
-- [ ] Tail call elimation
+- [ ] Tail call elimination
 - [ ] Back end: Python Bytecode
 - [ ] Specializations for some primitive data types
 - [ ] Incremental compilation
