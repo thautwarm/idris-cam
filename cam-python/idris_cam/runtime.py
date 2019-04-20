@@ -66,8 +66,8 @@ rt_support = {
     'prim-strint': int,
     'prim-intch': chr,
     'prim-chint': ord,
-    'prim-sext': lambda x: x,
-    'prim-zext': lambda x: x,
+    # 'prim-sext': lambda x: x,
+    # 'prim-zext': lambda x: x,
 
     # STR METHOD2
     'prim-strhead': lambda s: s[0],
