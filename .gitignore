@@ -3,6 +3,7 @@ idris-python.cabal
 *~
 *.ibc
 *.o
+**_flymake.hs
 
 
 
