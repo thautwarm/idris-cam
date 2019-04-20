@@ -57,7 +57,7 @@ export IR, Let, LetRec, If, While, Mutate, Fun
 export App, Var, Block, Join, Proj
 export BigIntConst, IntConst, DoubleConst
 export StrConst, ChConst, BoolConst, NilConst
-export Internal, Located
+export Internal, Located, SymConst
 
 
 @data IR begin
@@ -79,6 +79,7 @@ export Internal, Located
     StrConst(String)
     ChConst(Char)
     BoolConst(Bool)
+    SymConst(String)
     NilConst()
 
     Internal(String)
@@ -104,6 +105,7 @@ end
 
 ir_to_julia(ir::IR) =
     @match ir begin
+        SymConst(Sym(sym)) => QuoteNode(sym)
         Var(Sym(sym)) => sym
         # Let(Sym(fn_name), Fun([Sym(arg) for arg in args], Julia(fn_body)), Julia(body)) =>
         #     :(let $fn_name($(args...), ) = $fn_body; $body end)
@@ -128,7 +130,7 @@ ir_to_julia(ir::IR) =
         Join([Julia(elt) for elt in elts]) =>
             :($(elts..., ))
         Proj(Julia(major), Julia(ith)) =>
-            :($major[$ith])
+                :($major[$ith + 1])
 
         StrConst(c) => foldr(c, init=CamJulia.IdrisList.IdrisNil{Char}()) do each, prev
             each ^ prev

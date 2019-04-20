@@ -268,6 +268,14 @@ class Proj(AST):
         i += 3
         return self.ith.dump(i, io)
 
+@dataclass
+class Symbol(AST):
+    v: str
+
+    def dump(self, indent, io):
+        v = self.v
+        print_io(io, ":", v)
+        return len(v) + 1 + indent
 
 @dataclass
 class Located(AST):
@@ -434,7 +442,26 @@ class Scope:
         return reg
 
 
-def run_code(node):
+class _Symbol:
+    def __init__(self, s):
+        self.s = s
+    def __repr__(self):
+        return self.s
+
+
+class LinkSession:
+    syms: Dict[str, _Symbol]
+
+    def __init__(self):
+        self.syms = {}
+
+    def __getitem__(self, s):
+        sym = self.syms.get(s, None)
+        if sym is None:
+            sym = self.syms[s] = _Symbol(s)
+        return sym
+
+def run_code(node, link_session: LinkSession):
     lit_ids = {}
 
     def inner(n: Constructs, ctx: Scope):
@@ -486,6 +513,10 @@ def run_code(node):
             ctx.code.extend(new_ctx.code)
 
             return ret
+
+        if isinstance(n, Symbol):
+            sym = link_session[n.v]
+            return inner(Staged(sym), ctx)
 
         if isinstance(n, Mutate):
             target = inner(n.target, ctx)

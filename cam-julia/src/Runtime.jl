@@ -12,9 +12,18 @@ simple_read(f::FakeFileHandler) = open(f.filename) do f
     from_text(read(f, String))
 end
 
+filesystem_pipe(::Nothing) = (1, 2)
+
+function is(a :: T , b :: T) where T
+    a === b
+end
+
+is(_, _) = false
+
 export rt_support
 rt_support = Dict{String, Any}(
     "idris-cam-rt.cmp" => (==),
+    "idris-cam-rt.is" => is,
 
     "prim-plus" => (+),
     "prim-minus" => (-),
@@ -59,6 +68,7 @@ rt_support = Dict{String, Any}(
 
     "builtin-println" => println,
     "builtin-simple_open" => simple_open,
-    "builtin-simple_read" => simple_read
+    "builtin-simple_read" => simple_read,
+    "builtin-filesystem_pipe" => filesystem_pipe
 )
 end

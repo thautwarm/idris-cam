@@ -26,6 +26,7 @@ function aeson_to_ir(x::NamedTuple)
         "ComBlock"  => com_block
         "ComTuple"  => com_tuple
         "ComProj"   => com_proj
+        "ComSymbol" => com_sym
         "ComInt"    => com_int
         "ComBigInt" => com_bigint
         "ComDouble" => com_double
@@ -55,7 +56,7 @@ com_letrec = @λ [
     ] -> LetRec(bindings, body)
 
 com_if = @λ [Load(cond), Load(iftrue), Load(iffasle)] ->
-            If(cond, iftrue, ifelse)
+            If(cond, iftrue, iffasle)
 
 com_while = @λ [Load(cond), Load(body)] ->
                While(cond, body)
@@ -74,7 +75,9 @@ com_tuple = @λ [Load(elt) for elt in elts] -> Join(elts)
 
 com_proj = @λ [Load(major), Load(ith)] -> Proj(major, ith)
 
-com_bigint = @λ s ->  BitIntConst(parse(BigInt, s))
+com_bigint = BigIntConst ∘ big
+
+com_sym = SymConst
 
 com_int = IntConst
 

@@ -1,6 +1,7 @@
 package cam
 
 modules = Cam.FFI
+        , Cam.IO
         , Cam.OS.Platform
         , Cam.OS.FileSystem
         , Cam.Data.Compat

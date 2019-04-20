@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module IRTS.CodegenCam(codegenCam) where
 import Data.Map.Strict (Map)
@@ -32,6 +33,7 @@ data ComIR
     | ComTuple [ComIR]
     | ComProj ComIR ComIR
 
+    | ComSymbol String -- implement fast data types
     | ComBigInt Integer
     | ComInt Int
     | ComDouble Double
@@ -62,7 +64,7 @@ decl :: DDecl -> (String, ComIR)
 decl (DFun n ns body) =
     (showCG n, ComFun (fmap showCG ns) $ toIR body)
 decl (DConstructor n tag arity) =
-    (showCG n, ComFun argnames  $ ComTuple (ComStr (showCG n) : fmap ComVar argnames))
+    (showCG n, ComFun argnames  $ ComTuple (ComSymbol (showCG n) : fmap ComVar argnames))
     where
         argnames = take arity  vars
 
@@ -72,6 +74,8 @@ mkDecls xs =
 
 camErr = ComInternal "idris-cam-rt.err"
 camCmp = ComInternal "idris-cam-rt.cmp"
+camIs = ComInternal "idris-cam-rt.is"
+
 
 
 class HasIR a where
@@ -91,14 +95,18 @@ instance HasIR Const where
         a -> error $ "not impl: " ++ show a
 
 
+specify (showCG -> "MkUnit") = ComNil
+specify (showCG -> "Prelude.Bool.True") = ComBool True
+specify (showCG -> "Prelude.Bool.False") = ComBool False
+specify (showCG -> a) = ComSymbol a
+
 instance HasIR DExp where
     toIR = \case
         DV name            -> toIR name
         DApp _ name args   -> ComApp (toIR name) $ fmap toIR args
         DLet name v body   -> ComLet (showCG name) (toIR v) (toIR body)
         DUpdate name body  -> ComMutate (showCG name) (toIR body)
-        -- DC _ i name []      -> ComInt i
-        DC _ i name args   -> ComTuple $ ComStr (showCG name) : fmap toIR args
+        DC _ i name args   -> ComTuple $ ComSymbol (showCG name) : fmap toIR args
         DCase _ var' alts  -> patternMatchComp var' alts
         -- temporarily I treat SChkCase as SCase, for I don't know their diffs accurately.
         DChkCase var' alts -> patternMatchComp var' alts
@@ -122,6 +130,7 @@ instance HasIR DExp where
         DNothing           -> ComNil -- will never be inspected
         DError s           -> ComApp camErr [ComStr s]
 
+
 patternMatchComp var' = recur where
     var = toIR var'
     recur [] = ComNil
@@ -132,7 +141,7 @@ patternMatchComp var' = recur where
                 let capturing = foldr reducer (toIR body) (zip ns [1 ..])
                     casename = showCG n
                     reducer (n, i) = ComLet (showCG n) (ComProj var $ ComInt i)
-                    cond = ComApp camCmp [ComStr casename, ComProj var $  ComInt 0]
+                    cond = ComApp camIs [ComSymbol casename, ComProj var $  ComInt 0]
                 in ComIf cond capturing tail
             DConstCase const body ->
                 ComIf (ComApp camCmp [var, toIR const]) (toIR body) tail

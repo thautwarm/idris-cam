@@ -2,6 +2,7 @@ module Cam.Platform
 import Cam.FFI
 
 public export
+%inline
 platformName : () -> String
 platformName =
     unsafePerformIO . f
@@ -11,6 +12,7 @@ platformName =
 
 
 public export
+%inline
 platformSystem : () -> String
 platformSystem =
     unsafePerformIO . f

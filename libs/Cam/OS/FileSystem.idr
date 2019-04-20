@@ -1,17 +1,17 @@
 module Cam.FileSystem
 import Cam.FFI
 
--- pipe : () -> (Int, Int)
--- pipe () =
---     where
---         f : () -> IO (ComRaw (Int, Int))
---         f () = camCall (() -> IO (ComRaw (Int, Int))) (Builtin "filesystem_pipe") ()
+public export
+%inline
+pipe : () -> (Int, Int)
+pipe = believe_me . unsafePerformIO . f
+    where
+        f : () -> IO (ComRaw (Int, Int))
+        f () = camCall (() -> IO (ComRaw (Int, Int))) (Builtin "filesystem_pipe") ()
 
 
--- pipe : () -> (Int, Int)
--- pipe = unsafePerformIO . pipe'
-
-
+public export
+%inline
 getcwd : () -> String
 getcwd = unsafePerformIO . getcwd'
     where

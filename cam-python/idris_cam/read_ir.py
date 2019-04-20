@@ -69,6 +69,9 @@ def com_ch(cs):
 def com_str(cs):
     return Const(eval(repr(cs).replace(r'\\', '\\')))
 
+def com_sym(cs):
+    return Symbol(cs)
+
 
 switch = {
     'ComLet': com_let,
@@ -82,6 +85,7 @@ switch = {
     'ComBlock': com_block,
     'ComTuple': com_tuple,
     'ComProj': com_proj,
+    'ComSymbol': com_sym,
     'ComInt': com_const,
     'ComBigInt': com_const,
     'ComDouble': com_const,

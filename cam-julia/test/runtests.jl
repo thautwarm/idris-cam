@@ -1,13 +1,12 @@
 using CamJulia
 
-module A
-end
 macro load_cam(path)
     aeson = CamJulia.ReadIR.load_aeson(path);
-
     ir = CamJulia.ReadIR.aeson_to_ir(aeson)
-
-    CamJulia.CAM.ir_to_julia(ir)
+    x = CamJulia.CAM.ir_to_julia(ir)
+    @info x
+    esc(x)
 end
 
-@load_cam "./test.cam"
+# @load_cam "./test.cam"
+@load_cam "/tmp/idris5492-1"
