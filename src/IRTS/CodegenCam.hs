@@ -58,15 +58,22 @@ codegenCam ci =
         ir = mkDecls . fmap snd $ defunDecls ci
         t = map (showCG . fst) . simpleDecls $ ci
 
-
+specify (showCG -> "MkUnit") = ComNil
+specify (showCG -> "Prelude.Bool.True") = ComBool True
+specify (showCG -> "Prelude.Bool.False") = ComBool False
+specify (showCG -> a) = ComSymbol a
 
 decl :: DDecl -> (String, ComIR)
 decl (DFun n ns body) =
     (showCG n, ComFun (fmap showCG ns) $ toIR body)
 decl (DConstructor n tag arity) =
-    (showCG n, ComFun argnames  $ ComTuple (ComSymbol (showCG n) : fmap ComVar argnames))
+    (showCG n, ComFun argnames dataComposition)
     where
         argnames = take arity  vars
+        dataComposition =
+            if null argnames
+            then specify n
+            else ComTuple (ComSymbol (showCG n) : fmap ComVar argnames)
 
 mkDecls :: [DDecl] -> ComIR -- top level let recs
 mkDecls xs =
@@ -76,14 +83,11 @@ camErr = ComInternal "idris-cam-rt.err"
 camCmp = ComInternal "idris-cam-rt.cmp"
 camIs = ComInternal "idris-cam-rt.is"
 
-
-
 class HasIR a where
     toIR :: a -> ComIR
 
 instance HasIR  Name where
     toIR = ComVar . showCG
-
 
 instance HasIR Const where
     toIR = \case
@@ -95,17 +99,13 @@ instance HasIR Const where
         a -> error $ "not impl: " ++ show a
 
 
-specify (showCG -> "MkUnit") = ComNil
-specify (showCG -> "Prelude.Bool.True") = ComBool True
-specify (showCG -> "Prelude.Bool.False") = ComBool False
-specify (showCG -> a) = ComSymbol a
-
 instance HasIR DExp where
     toIR = \case
         DV name            -> toIR name
         DApp _ name args   -> ComApp (toIR name) $ fmap toIR args
         DLet name v body   -> ComLet (showCG name) (toIR v) (toIR body)
         DUpdate name body  -> ComMutate (showCG name) (toIR body)
+        DC _ i name []     -> specify name
         DC _ i name args   -> ComTuple $ ComSymbol (showCG name) : fmap toIR args
         DCase _ var' alts  -> patternMatchComp var' alts
         -- temporarily I treat SChkCase as SCase, for I don't know their diffs accurately.
@@ -124,7 +124,7 @@ instance HasIR DExp where
                                   ComStr name
                                 ]
                         in ComApp f args
-                _ -> errorWithoutStackTrace "Not supported FFI ops"
+                op -> errorWithoutStackTrace $ "Not supported FFI ops :" ++ show op
 
         DOp primfn vars    -> ComApp (toIR primfn) $ fmap toIR vars
         DNothing           -> ComNil -- will never be inspected
@@ -137,7 +137,11 @@ patternMatchComp var' cs = recur cs where
     recur (x:xs) =
         let tail = recur xs
         in case x of
-            DConCase _ n ns body ->
+            DConCase _ n ns body
+                | null ns ->
+                    let cond = ComApp camIs [specify n, var]
+                    in  ComIf cond (toIR body) tail
+                | otherwise ->
                 let capturing = foldr reducer (toIR body) (zip ns [1 ..])
                     casename = showCG n
                     reducer (n, i) = ComLet (showCG n) (ComProj var $ ComInt i)

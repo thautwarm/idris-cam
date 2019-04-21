@@ -32,6 +32,7 @@ def cmp(a, b):
 rt_support = {
     'idris-cam-rt.cmp': cmp,
     'idris-cam-rt.is': operator.is_,
+    'idris-cam-rt.err': raise_,
 
     'prim-plus': operator.add,
     'prim-minus': operator.sub,
