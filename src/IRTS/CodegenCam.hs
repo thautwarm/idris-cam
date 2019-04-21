@@ -131,9 +131,9 @@ instance HasIR DExp where
         DError s           -> ComApp camErr [ComStr s]
 
 
-patternMatchComp var' = recur where
+patternMatchComp var' cs = recur cs where
     var = toIR var'
-    recur [] = ComNil
+    recur [] = ComApp camErr [ComStr $ "unsolved case for " ++ show var' ++ " : " ++ show cs]
     recur (x:xs) =
         let tail = recur xs
         in case x of

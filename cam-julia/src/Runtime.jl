@@ -14,15 +14,32 @@ end
 
 filesystem_pipe(::Nothing) = (1, 2)
 
-function is(a :: T , b :: T) where T
+@inline function is(a :: T , b :: T) where T
     a === b
 end
 
 is(_, _) = false
 
+function to_list_str(s)
+    from_text(string(s))
+end
+
+@inline function parse_from_list_str(::Type{T}, s::IdrisString) where T
+    parse(T, string(s))
+end
+
+function parse_int_from_list_str(s::IdrisString)
+    parse_from_list_str(Int, s)
+end
+
+function parse_double_from_list_str(s::IdrisString)
+    parse_from_list_str(Float64, s)
+end
+
 export rt_support
 rt_support = Dict{String, Any}(
     "idris-cam-rt.cmp" => (==),
+    "idris-cam-rt.err" => throw,
     "idris-cam-rt.is" => is,
 
     "prim-plus" => (+),
@@ -52,10 +69,10 @@ rt_support = Dict{String, Any}(
     "prim-writestr" => print,
 
     # conversion
-    "prim-floatstr" => string,
-    "prim-strfloat" => x -> parse(Float64, x),
-    "prim-intstr" => string,
-    "prim-strint" => x -> parse(Int, x),
+    "prim-floatstr" => to_list_str,
+    "prim-strfloat" => x -> parse(Float64, x) ∘ string,
+    "prim-intstr" => to_list_str,
+    "prim-strint" => x -> parse(Int, x) ∘ string,
     "prim-intch" => Char,
     "prim-chint" => Int,
 

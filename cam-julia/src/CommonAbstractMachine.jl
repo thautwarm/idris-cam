@@ -128,7 +128,7 @@ ir_to_julia(ir::IR) =
         Block([Julia(expr) for expr in seq]) =>
             :(begin $(seq...) end)
         Join([Julia(elt) for elt in elts]) =>
-            :($(elts..., ))
+            :($(elts...), )
         Proj(Julia(major), Julia(ith)) =>
                 :($major[$ith + 1])
 

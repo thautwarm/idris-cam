@@ -117,9 +117,9 @@ string_tail(xs::IdrisCons{Char}) = xs.tail
 
 
 export string_concat
-string_concat(xs1::IdrisNil{Char}, xs2::IdrisString) = xs
+string_concat(xs1::IdrisNil{Char}, xs2::IdrisString) = xs2
 string_concat(xs1::IdrisCons{Char}, xs2::IdrisString) =
-    IdrisCons(xs1.head, string_concat(xs1.tail, xs))
+    IdrisCons(xs1.head, string_concat(xs1.tail, xs2))
 
 
 export string_len

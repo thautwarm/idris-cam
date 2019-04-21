@@ -14,4 +14,4 @@ testSimple : FFI.IO ()
 testSimple = println $ show a
     where
         a : (Int, Int, Int)
-        a = (1, 2, 3)
+        a = (1, (2, 3))
