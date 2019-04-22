@@ -5,7 +5,8 @@ idris-python.cabal
 *.o
 **_flymake.hs
 
-
+#
+libs/test2.idr
 
 # dot
 **Digraph.gv
