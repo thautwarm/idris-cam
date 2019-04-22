@@ -103,6 +103,11 @@ export ir_to_julia
     end
 end
 
+@generated function projection(x, i :: Int)
+    x <: Tuple ? :(x[i]) : :(if i === 1; x else throw("internal runtime error") end)
+end
+
+
 ir_to_julia(ir::IR) =
     @match ir begin
         SymConst(Sym(sym)) => QuoteNode(sym)
@@ -130,7 +135,8 @@ ir_to_julia(ir::IR) =
         Join([Julia(elt) for elt in elts]) =>
             :($(elts...), )
         Proj(Julia(major), Julia(ith)) =>
-                :($major[$ith + 1])
+            :($projection($major, $ith + 1))
+            # :($major[$ith + 1])
 
         StrConst(c) => foldr(c, init=CamJulia.IdrisList.IdrisNil{Char}()) do each, prev
             each ^ prev

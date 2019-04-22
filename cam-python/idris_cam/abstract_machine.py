@@ -445,6 +445,11 @@ class Scope:
 class _Symbol:
     def __init__(self, s):
         self.s = s
+    def __getiem__(self, i):
+        if i is 0:
+            return self
+        raise RuntimeError("internal runtime error")
+
     def __repr__(self):
         return self.s
 

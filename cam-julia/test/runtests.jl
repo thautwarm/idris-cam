@@ -16,5 +16,5 @@ macro load_cam(path)
     esc(x)
 end
 
-@load_cam "./test.cam"
-@load_cam "/tmp/idris25025-1"
+# @load_cam "./test.cam"
+@load_cam "/tmp/idris6765-1"

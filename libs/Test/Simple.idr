@@ -21,7 +21,7 @@ f : StaticSized c => TypeHolder c -> Nat
 f d = typeSize d
 
 testSimple : FFI.IO ()
-testSimple = println $ show (size a)
+testSimple = println $ show hvec2
     where
         a : Vect 3 Int
         a = [1, 2, 3]
@@ -40,5 +40,5 @@ testSimple = println $ show (size a)
         hvecItem : Double
         hvecItem = index (the (Fin _) $ fromInteger 1) hvec
 
-        -- hvec2 : HVect [Double, Int]
-        -- hvec2 = reverse hvec
+        hvec2 : HVect [Double, Int]
+        hvec2 = reverse hvec

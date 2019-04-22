@@ -135,7 +135,7 @@ const PENDING = Int8(2)
 export list_compare
 function list_compare(xs1::AbstractIdrisList{A}, xs2::AbstractIdrisList{A}) where A
     ended = false
-    res :: Union = PENDING
+    res = PENDING
     while !ended
         ended, res = @match (xs1, xs2) begin
             (IdrisNil{A}, IdrisNil{A}) => (true, EQ)
