@@ -61,9 +61,19 @@ StaticSized (HVect xs) where
 Sized (HVect xs) where
   size {xs} _ = size xs
 
-
 Indexable (HVect xs) (Fin (size xs)) where
     eltype {xs} fin _ = index fin xs
     index FZ (x::xs) = x
     index (FS k) (x :: xs) = index k xs
 
+reverse_vect : Vect n t -> Vect n t
+reverse_vect = reverse
+
+Reversable (HVect xs) (HVect (reverse_vect xs)) where
+  reverse {xs} lst = rev {xs} {[]} lst []
+
+    -- reverse {xs} lst = rev {xs} {[]} lst [] where
+      -- rev : {xs1 :: Vect n1 Type} -> {xs2 :: Vect n2 Type} -> HVect xs1 -> HVect xs2 -> HVect (reverse xs1 ++ xs2)
+      -- rev [] xs = xs
+    -- rev {xs1 = x1::xs1} {xs2 = x2::xs2} (elt1::lst1) (elt2::lst2) =
+      -- rev {xs1=xs1} {xs2=x1::x2::xs2} lst1 (elt1::elt2::lst2)

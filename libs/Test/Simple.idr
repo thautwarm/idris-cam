@@ -8,6 +8,7 @@ import Data.HVect
 
 %hide HVect.index
 %hide Vect.index
+-- %hide HVect.reverse
 
 %access export
 
@@ -26,6 +27,10 @@ testSimple = println $ show (size a)
         a = [1, 2, 3]
         nnn : Nat
         nnn = f (MkTypeHolder (Vect 3 Int))
+
+        reva : Vect 3 Int
+        reva = reverse a
+
         e : Int
         e = index (the (Fin _) $ fromInteger 1) a
 
@@ -34,3 +39,6 @@ testSimple = println $ show (size a)
 
         hvecItem : Double
         hvecItem = index (the (Fin _) $ fromInteger 1) hvec
+
+        -- hvec2 : HVect [Double, Int]
+        -- hvec2 = reverse hvec
