@@ -98,16 +98,15 @@ testSimple = do
 
 ~/github/idris-cam | master> cd cam-python/test && python test.py
 
-[2,1]
+[2.0,1]
 [1, 2, 3]
 [3, 2, 1]
 2
-[1,2]
-2
-
+[1,2.0]
+2.0
 .
 ----------------------------------------------------------------------
-Ran 1 test in 0.175s
+Ran 1 test in 0.177s
 
 OK
 ```
@@ -131,12 +130,42 @@ CamJulia> test
 ```
 
 
+## Cam Loader
+
+a `.cam` file is simply a JSON file consist of the abstract instructions which could be loaded by Python and Julia and compiled conveniently.
+
+For Julia, there's a [`@load_cam` macro](https://github.com/thautwarm/idris-cam/blob/master/cam-julia/test/runtests.jl):
+
+```julia
+macro load_cam(path)
+    aeson = CamJulia.ReadIR.load_aeson(path);
+    ir = CamJulia.ReadIR.aeson_to_ir(aeson)
+    x = CamJulia.CAM.ir_to_julia(ir)
+    esc(x)
+end
+
+@load_cam "./test.cam"
+```
+
+For Python, there is a [`load_cal` function](https://github.com/thautwarm/idris-cam/blob/master/cam-python/test/test.py):
+
+```julia
+def load_cam(path, session):
+    with open(path, 'r') as f:
+        js = json.load(f)
+
+    letrec: LetRec = aeson_to_ir(js)
+    return run_code(letrec, session)
+```
+
+The `session` argument of Python's `load_cam` indicates a symbol generator. Comparisons of symbols are O(1) thus allow us to
+create efficient tagged unions(ADTs, data types). In Julia, `Symbol` is an essential type.
 
 ## FFI Mechansim
 
 
-The task about [New Foreign Function Interface](http://docs.idris-lang.org/en/latest/reference/ffi.html)
-makes this handy FFI feasible.
+Thanks to the tasks of [New Foreign Function Interface](http://docs.idris-lang.org/en/latest/reference/ffi.html)
+, it makes our handy FFI feasible.
 
 ### Idris Side
 
