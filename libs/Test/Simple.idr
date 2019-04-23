@@ -21,8 +21,14 @@ f : StaticSized c => TypeHolder c -> Nat
 f d = typeSize d
 
 testSimple : FFI.IO ()
-testSimple = println $ show hvec2
-    where
+testSimple = do
+      println $ show hvec2
+      println $ show a
+      println $ show reva
+      println $ show e
+      println $ show hvec
+      println $ show hvecItem
+  where
         a : Vect 3 Int
         a = [1, 2, 3]
         nnn : Nat
