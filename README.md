@@ -132,7 +132,7 @@ CamJulia> test
 
 ## Cam Loader
 
-a `.cam` file is simply a JSON file consist of the abstract instructions which could be loaded by Python and Julia and compiled conveniently.
+A `.cam` file is simply a JSON file consist of the abstract instructions which could be loaded by Python and Julia and compiled conveniently.
 
 For Julia, there's a [`@load_cam` macro](https://github.com/thautwarm/idris-cam/blob/master/cam-julia/test/runtests.jl):
 
