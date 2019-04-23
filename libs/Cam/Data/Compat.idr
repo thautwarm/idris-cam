@@ -2,6 +2,7 @@ module Compat
 import Data.Vect
 import Data.HVect
 import Cam.FFI
+import Cam.IO
 import Cam.Data.Collections
 
 %access export
@@ -52,3 +53,20 @@ implementation Mapping (FHVect xs) (HVect (mapTypes xs)) where
                         camCall (Nat -> FHVect xs -> FFI.IO Ptr) (Builtin "fhvect_to_native") (size xs) a
     toForeigen {xs} b = unsafePerformIO $
                         camCall (Nat -> Ptr -> FFI.IO  (FHVect xs)) (Builtin "hvect_to_foreign") (size xs) (believe_me b)
+
+mutual
+    implementation Mapping (ComRaw String) String where
+        toNative a = unsafePerformIO $
+                        camCall (ComRaw String -> FFI.IO String) (Builtin "fstr_to_native") a
+
+        toForeigen b = unsafePerformIO $
+                        camCall (String -> FFI.IO (ComRaw String)) (Builtin "str_to_foreign") b
+
+    implementation Show (FList t) where
+        show = toNative . toStr
+
+    implementation Show (FVect n t) where
+        show = toNative . toStr
+
+    implementation Show (FHVect xs) where
+        show = toNative . toStr

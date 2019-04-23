@@ -2,6 +2,7 @@
 module Runtime
 using MLStyle
 using CamJulia.IdrisList
+using CamJulia.IdrisForeignCollections
 
 struct FakeFileHandler
     filename :: String
@@ -86,6 +87,16 @@ rt_support = Dict{String, Any}(
     "builtin-println" => println,
     "builtin-simple_open" => simple_open,
     "builtin-simple_read" => simple_read,
-    "builtin-filesystem_pipe" => filesystem_pipe
+    "builtin-filesystem_pipe" => filesystem_pipe,
+
+    # flist
+    "builtin-reverse_flist" => reverse,
+    "builtin-flist_to_native" => from_flist,
+    "builtin-list_to_foreign" => to_flist,
+    # string
+    "builtin-to_str" => string,
+    "builtin-fstr_to_native" => from_text,
+    "builtin-str_to_foreign" => string,
+
 )
 end

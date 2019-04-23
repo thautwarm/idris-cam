@@ -1,6 +1,7 @@
 module ReadIR
 using JSON2
 using MLStyle
+using CamJulia
 using CamJulia.CAM
 
 export load_aeson, aeson_to_ir
@@ -75,7 +76,7 @@ com_tuple = @λ [Load(elt) for elt in elts] -> Join(elts)
 
 com_proj = @λ [Load(major), Load(ith)] -> Proj(major, ith)
 
-com_bigint = BigIntConst ∘ big
+com_bigint = BigIntConst ∘ IdrisIntegerT
 
 com_sym = SymConst
 

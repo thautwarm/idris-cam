@@ -2,7 +2,7 @@ module CAM
 using MLStyle
 using MLStyle.Infras: @format, mangle
 using CamJulia.Runtime
-import CamJulia
+using CamJulia
 
 
 @use Enum # replace `S() => ...` with `S => ...`
@@ -73,7 +73,7 @@ export Internal, Located, SymConst
     Join(Vector{IR})
     Proj(IR, IR)
 
-    BigIntConst(BigInt)
+    BigIntConst(IdrisIntegerT)
     IntConst(Int)
     DoubleConst(Float64)
     StrConst(String)

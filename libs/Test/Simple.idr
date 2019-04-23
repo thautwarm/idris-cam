@@ -30,7 +30,11 @@ testSimple = do
       println $ show e
       println $ show hvec
       println $ show hvecItem
+      println $ show flist_rev
   where
+      lst : List RawInteger
+      lst = map toForeigen [1, 2, 3]
+
       a : Vect 3 Int
       a = [1, 2, 3]
       nnn : Nat
@@ -51,13 +55,13 @@ testSimple = do
       hvec2 : HVect [Double, Int]
       hvec2 = reverse hvec
 
-      flist : FList Int
-      flist = believe_me ()
+      flist : FList Integer
+      flist = toForeigen lst
 
-      flist_item : ComRaw Int
+      flist_item : ComRaw Integer
       flist_item = index 2 flist
 
-      flist_rev: FList Int
+      flist_rev: FList Integer
       flist_rev = reverse flist
 
       flist_size: Nat

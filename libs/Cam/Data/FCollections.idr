@@ -16,6 +16,7 @@ import Data.Vect
 import Data.HVect
 import Cam.Data.Collections
 import Cam.FFI
+import Cam.IO
 
 %access public export
 %hide Vect.index
@@ -141,4 +142,3 @@ reverseFHVect {xs} vec = let builtin = Builtin "reverse_fvect" in
 
 implementation Reversable (FHVect xs) (FHVect (reverseVect xs)) where
   reverse vec = reverseFHVect vec
-
