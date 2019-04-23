@@ -21,18 +21,6 @@ import Cam.FFI
 %hide Vect.index
 %hide HVect.index
 
-FList : Type -> Type
-FList a = ComRaw (List a)
-
--- sized vector
-FVect : Nat -> Type -> Type
-FVect n a = ComRaw (Vect n a)
-
--- Heterogeneous Vector.
--- In many language, it's called `tuple`.
-FHVect : Vect n Type -> Type
-FHVect xs = ComRaw (HVect xs)
-
 
 -- maybe overflow
 indexRawOF : String -> Int -> Ptr -> Ptr
@@ -57,15 +45,15 @@ indexRawNat s i v = let builtin = Builtin s in
 -- Implementations for FList
 
 
-sizeFList : FList a -> Nat
+sizeFList : FList a -> Integer
 sizeFList lst = assert_total $
     let builtin = Builtin "size_flist" in
-    let box = camCall (FList a -> FFI.IO Nat) builtin lst in
+    let box = camCall (FList a -> FFI.IO Integer) builtin lst in
     unsafePerformIO box
 
 implementation Sized (FList t) where
  -- It seems that using `size = sizeFlist` causes bad properties, not sure yet
-  size lst = sizeFList lst
+  size lst = fromInteger $ sizeFList lst
 
 implementation Indexable (FList t) Integer where
   eltype {t} _ _ = ComRaw t

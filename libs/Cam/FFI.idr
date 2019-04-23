@@ -1,5 +1,7 @@
 module FFI
-import Data.Fin
+import Data.HVect
+import Data.Vect
+
 %hide IO
 
 
@@ -26,6 +28,22 @@ mutual
     data ComRaw t = MkComRaw t
 
     public export
+    data FList : Type -> Type where
+        MockFList : (t: Type) -> FList t
+
+    public export
+    -- sized vector
+    data FVect : Nat -> Type -> Type where
+        MockFVect : (n: Nat) -> (t: Type) -> FVect n t
+
+    public export
+    -- Heterogeneous Vector.
+    -- In many language, it's called `tuple`.
+    data FHVect : Vect n Type -> Type where
+        MockFHVect : (xs: Vect n Type) -> FHVect xs
+
+
+    public export
     data ComFunTypes : Type -> Type where
         Com_FunType       : Com s -> ComFunTypes t -> ComFunTypes (s -> t)
         Com_FnIOType      : Com t -> ComFunTypes (IO t)
@@ -47,6 +65,10 @@ mutual
         -- special
         Com_Nat    : Com Nat
         Com_Fin    : Com (Fin n)
+        -- fci
+        Com_List   : Com (FList t)
+        Com_Vect   : Com (FVect n t)
+        Com_HVect  : Com (FHVect xs)
 
 
     public export

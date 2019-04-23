@@ -1,20 +1,18 @@
 module Cam.FileSystem
 import Cam.FFI
+import Cam.Data.FCollections
+import Data.Vect
+import Data.HVect
 
 public export
 %inline
-pipe : () -> (Int, Int)
-pipe = believe_me . unsafePerformIO . f
-    where
-        f : () -> IO (ComRaw (Int, Int))
-        f () = camCall (() -> IO (ComRaw (Int, Int))) (Builtin "filesystem_pipe") ()
 
+pipe : () -> FHVect [Int, Int]
+pipe () = unsafePerformIO $
+            camCall (() -> IO (FHVect [Int, Int])) (Builtin "filesystem_pipe") ()
 
 public export
 %inline
-getcwd : () -> String
-getcwd = unsafePerformIO . getcwd'
-    where
-        getcwd' : () -> IO String
-        getcwd' () = camCall (() -> IO String) (Builtin "filesystem_getcwd") ()
-
+getcwd : () ->  ComRaw String
+getcwd () = unsafePerformIO $
+            camCall (() -> IO (ComRaw String)) (Builtin "filesystem_getcwd") ()

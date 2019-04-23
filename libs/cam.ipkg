@@ -2,11 +2,11 @@ package cam
 
 modules = Cam.FFI
         , Cam.IO
-        , Cam.OS.Platform
-        , Cam.OS.FileSystem
         , Cam.Data.Compat
         , Cam.Data.Collections
 	, Cam.Data.FCollections
+        , Cam.OS.Platform
+        , Cam.OS.FileSystem
         , Test.Simple
 
 tests = Test.Simple.testSimple
