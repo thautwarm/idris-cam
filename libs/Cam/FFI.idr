@@ -3,7 +3,7 @@ import Data.HVect
 import Data.Vect
 
 %hide IO
-
+%access public export
 
 public export
 record UInt where
@@ -69,6 +69,21 @@ mutual
         Com_List   : Com (FList t)
         Com_Vect   : Com (FVect n t)
         Com_HVect  : Com (FHVect xs)
+
+    RawInt : Type
+    RawInt = ComRaw Int
+
+    RawInteger : Type
+    RawInteger = ComRaw Integer
+
+    RawDouble : Type
+    RawDouble = ComRaw Double
+
+    RawUnit : Type
+    RawUnit = ComRaw ()
+
+    RawChar : Type
+    RawChar= ComRaw Char
 
 
     public export

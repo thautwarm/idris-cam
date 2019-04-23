@@ -21,6 +21,8 @@ import Cam.FFI
 %hide Vect.index
 %hide HVect.index
 
+instantiate : String -> Ptr
+instantiate s = unsafePerformIO $ camCall (FFI.IO Ptr) (Builtin s)
 
 -- maybe overflow
 indexRawOF : String -> Int -> Ptr -> Ptr

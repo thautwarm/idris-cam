@@ -2,9 +2,9 @@ package cam
 
 modules = Cam.FFI
         , Cam.IO
-        , Cam.Data.Compat
         , Cam.Data.Collections
 	, Cam.Data.FCollections
+        , Cam.Data.Compat
         , Cam.OS.Platform
         , Cam.OS.FileSystem
         , Test.Simple

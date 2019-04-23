@@ -4,6 +4,7 @@ import Cam.OS.FileSystem
 import Cam.IO
 import Cam.Data.Collections
 import Cam.Data.FCollections
+import Cam.Data.Compat
 import Data.Vect
 import Data.HVect
 
@@ -79,3 +80,6 @@ testSimple = do
 
       fhvect_rev: FHVect [Int, String]
       fhvect_rev = reverse fhvect
+
+      hvect_f : HVect [RawInt, ComRaw String]
+      hvect_f = toNative fhvect_rev
