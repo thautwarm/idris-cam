@@ -3,12 +3,13 @@ import Cam.FFI
 import Cam.OS.FileSystem
 import Cam.IO
 import Cam.Data.Collections
+import Cam.Data.FCollections
 import Data.Vect
 import Data.HVect
 
 %hide HVect.index
 %hide Vect.index
--- %hide HVect.reverse
+%hide Vect.reverse
 
 %access export
 
@@ -29,22 +30,52 @@ testSimple = do
       println $ show hvec
       println $ show hvecItem
   where
-        a : Vect 3 Int
-        a = [1, 2, 3]
-        nnn : Nat
-        nnn = f (MkTypeHolder (Vect 3 Int))
+      a : Vect 3 Int
+      a = [1, 2, 3]
+      nnn : Nat
+      nnn = f (MkTypeHolder (Vect 3 Int))
 
-        reva : Vect 3 Int
-        reva = reverse a
+      reva : Vect 3 Int
+      reva = reverse a
 
-        e : Int
-        e = index (the (Fin _) $ fromInteger 1) a
+      e : Int
+      e = index (the (Fin _) $ fromInteger 1) a
 
-        hvec : HVect [Int, Double]
-        hvec = [1, 2.0]
+      hvec : HVect [Int, Double]
+      hvec = [1, 2.0]
 
-        hvecItem : Double
-        hvecItem = index (the (Fin _) $ fromInteger 1) hvec
+      hvecItem : Double
+      hvecItem = index (the (Fin _) $ fromInteger 1) hvec
 
-        hvec2 : HVect [Double, Int]
-        hvec2 = reverse hvec
+      hvec2 : HVect [Double, Int]
+      hvec2 = reverse hvec
+
+      flist : FList Int
+      flist = believe_me ()
+
+      flist_item : ComRaw Int
+      flist_item = index 2 flist
+
+      flist_rev: FList Int
+      flist_rev = reverse flist
+
+      flist_size: Nat
+      flist_size = size flist
+
+      fvect: FVect 2 Int
+      fvect = believe_me()
+
+      fvect_item : ComRaw Int
+      fvect_item = index (the (Fin _) $ fromInteger 1) fvect
+
+      fvect_rev: FVect 2 Int
+      fvect_rev = reverse fvect
+
+      fhvect : FHVect [String, Int]
+      fhvect = believe_me()
+
+      fhvect_item : ComRaw String
+      fhvect_item = index (the (Fin _) $ fromInteger 0) fhvect
+
+      fhvect_rev: FHVect [Int, String]
+      fhvect_rev = reverse fhvect

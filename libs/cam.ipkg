@@ -6,6 +6,7 @@ modules = Cam.FFI
         , Cam.OS.FileSystem
         , Cam.Data.Compat
         , Cam.Data.Collections
+	, Cam.Data.FCollections
         , Test.Simple
 
 tests = Test.Simple.testSimple

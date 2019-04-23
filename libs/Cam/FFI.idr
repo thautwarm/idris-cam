@@ -1,5 +1,7 @@
 module FFI
+import Data.Fin
 %hide IO
+
 
 public export
 record UInt where
@@ -31,15 +33,21 @@ mutual
 
     public export
     data Com : Type -> Type where
-        Com_Unit   : Com ()
-        Com_Str    : Com String
-        Com_Double : Com Double -- bit -> type
-        Com_Int    : Com Int    -- bit -> type
-        Com_UInt   : Com UInt   -- an example of extensive primitive type impl
-        Com_Ptr    : Com Ptr
-        Com_Fun    : ComFunTypes a -> Com (ComFn a)
-        Com_Char   : Com Char
-        Com_Raw    : Com (ComRaw a)
+        -- native
+        Com_Unit    : Com ()
+        Com_Str     : Com String
+        Com_Double  : Com Double -- bit -> type
+        Com_BigInt  : Com Integer
+        Com_Int     : Com Int    -- bit -> type
+        Com_UInt    : Com UInt   -- an example of extensive primitive type impl
+        Com_Ptr     : Com Ptr
+        Com_Fun     : ComFunTypes a -> Com (ComFn a)
+        Com_Char    : Com Char
+        Com_Raw     : Com (ComRaw a)
+        -- special
+        Com_Nat    : Com Nat
+        Com_Fin    : Com (Fin n)
+
 
     public export
     data ForeignName

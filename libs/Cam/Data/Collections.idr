@@ -84,7 +84,7 @@ vectAppendLastProp x xs = Refl
 
 zeroVectCommutativeProp : (vec: Vect n t) -> vec = vec ++ []
 zeroVectCommutativeProp [] = Refl
-zeroVectCommutativeProp (x::xs) = 
+zeroVectCommutativeProp (x::xs) =
   rewrite zeroVectCommutativeProp xs in vectAppendLastProp x xs
 
 -- convert implcit vars into the explicit ones and it works, which
