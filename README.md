@@ -35,98 +35,102 @@ A framework for Idris RTS.
 ## Python & Julia Example
 
 
-1. Check file [examples/test_ffi.idr](https://github.com/thautwarm/idris-cam/blob/master/examples/test_ffi.idr), the main is
+### Test Generation
 
-    ```idris
-    main : CamIO ()
-    main = do
-        fh <- openFile "./text.txt"
-        s <- readFile fh
-        println s
-    ```
+You can test the Idris package `Cam`, generating test files for Python or Julia with
 
-2. Generate `.cam` files via idris-codegen.
+```
+~/github/idris-cam | master> cd libs && python gen_test.py
+```
 
-    ```
-    stack exec idris -- --codegen=cam ./examples/test_ffi.idr -o ./cam-julia/test/test.cam
+Above command compiles `idris-cam/libs/Test/Simple.idr` into `.cam` file.
 
-    stack exec idris -- --codegen=cam ./examples/test_ffi.idr -o ./cam-python/test/test.cam
-    ```
+```idris
+-- idris-cam/libs/Test/Simple.idr
 
-3. Test Julia, check [can-julia/test/runtests.jl](https://github.com/thautwarm/idris-cam/tree/master/cam-julia/test/runtests.jl)
+module Test.Simple
+import Cam.FFI
+import Cam.OS.FileSystem
+import Cam.IO
+import Cam.Data.Collections
+import Data.Vect
+import Data.HVect
 
-    ```julia
-    using CamJulia
+-- hide them for we have adhoc `index` from type class Indexable!
+%hide HVect.index
+%hide Vect.index
 
-    module A
-    end
-    macro load_cam(path)
-        aeson = CamJulia.ReadIR.load_aeson(path);
+%access export
 
-        ir = CamJulia.ReadIR.aeson_to_ir(aeson)
+testSimple : FFI.IO ()
+testSimple = do
+      println $ show hvec2
+      println $ show a
+      println $ show reva
+      println $ show e
+      println $ show hvec
+      println $ show hvecItem
+  where
+        a : Vect 3 Int
+        a = [1, 2, 3]
+        nnn : Nat
+        nnn = f (MkTypeHolder (Vect 3 Int))
 
-        CamJulia.CAM.ir_to_julia(ir)
-    end
+        reva : Vect 3 Int
+        reva = reverse a
 
-    @load_cam "./test.cam"
-    ```
+        e : Int
+        e = index (the (Fin _) $ fromInteger 1) a
 
-    You'd open julia-shell in `cam-julia` directory, then
+        hvec : HVect [Int, Double]
+        hvec = [1, 2.0]
 
-    ```
-    julia> ]
-    pkg> activate .
-    CamJulia> instantiate
-    CamJulia> test
-       Testing CamJulia
-    Resolving package versions...
-        啊，太懂了！太懂Idris Julia辣！
-    Testing CamJulia tests passed
-    ```
+        hvecItem : Double
+        hvecItem = index (the (Fin _) $ fromInteger 1) hvec
 
-    The output text is from `text.txt` located in cam-julia/test/text.txt.
+        hvec2 : HVect [Double, Int]
+        hvec2 = reverse hvec
+```
 
-4. Test Python, check [cam-python/test/test.py](https://github.com/thautwarm/idris-cam/tree/master/cam-python/test/test.py),
+### Test in Python
 
-    ```python
-    import sys
-    import os
-    import json
-    import unittest
-    sys.path.append('..')
+```
 
-    from idris_cam.read_ir import *
+~/github/idris-cam | master> cd cam-python/test && python test.py
 
-    class Test(unittest.TestCase):
-        def test_too_known(self):
-            with open('./test.cam', 'r') as f:
-                js = json.load(f)
+[2,1]
+[1, 2, 3]
+[3, 2, 1]
+2
+[1,2]
+2
 
-            letrec: LetRec = aeson_to_ir(js)
-            # a = dict(letrec.seqs)
-            # print(a['Main.println'])
-            # print(a['Main.main'])
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.175s
+
+OK
+```
+
+### Test in Julia
+
+```
+~/github/idris-cam | master> cd cam-julia
+~/github/idris-cam | master> julia
+~/github/idris-cam | master> cd cam-julia
+julia> ]
+v1.1> activate .
+CamJulia> test
+
+[2.0,1]
+[1, 2, 3]
+[3, 2, 1]
+2
+[1,2.0]
+2.0
+```
 
 
-            #.dump(0, None)
-            # print()
-            run_code(letrec)
-            return
-
-    unittest.main()
-    ```
-
-    Then go to directory `cam-python/test`, run
-    ```
-    python test.py
-
-    啊，太懂了！太懂Idris Python辣！
-    .
-    ----------------------------------------------------------------------
-    Ran 1 test in 0.086s
-
-    OK
-    ```
 
 ## FFI Mechansim
 

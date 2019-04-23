@@ -72,6 +72,9 @@ def com_str(cs):
 def com_sym(cs):
     return Symbol(cs)
 
+def com_float(c):
+    return Const(float(c))
+
 
 switch = {
     'ComLet': com_let,
@@ -88,7 +91,7 @@ switch = {
     'ComSymbol': com_sym,
     'ComInt': com_const,
     'ComBigInt': com_const,
-    'ComDouble': com_const,
+    'ComDouble': com_float,
     'ComCh': com_const,
     'ComBool': com_const,
     'ComStr': com_str,

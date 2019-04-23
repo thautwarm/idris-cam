@@ -445,7 +445,8 @@ class Scope:
 class _Symbol:
     def __init__(self, s):
         self.s = s
-    def __getiem__(self, i):
+
+    def __getitem__(self, i):
         if i is 0:
             return self
         raise RuntimeError("internal runtime error")
@@ -562,10 +563,12 @@ def run_code(node, link_session: LinkSession):
             return ctx.new_register(fn_name)
 
         if isinstance(n, Staged):
-            if n.value not in lit_ids:
-                name = lit_ids[n.value] = f"lit_{len(lit_ids)}"
+            value = n.value
+            key = value, type(value)
+            if key not in lit_ids:
+                name = lit_ids[key] = f"lit_{len(lit_ids)}"
             else:
-                name = lit_ids[n.value]
+                name = lit_ids[key]
 
             return ctx.new_register(name)
 
@@ -644,7 +647,7 @@ def run_code(node, link_session: LinkSession):
 
     scope = {}
     exec(compile(top_ast, "<codegen>", "exec"), scope)
-    return scope['main'](*lit_ids.keys())
+    return scope['main'](*(v for (v, typ_of_v) in lit_ids.keys()))
 
 
 def where(body: Union[AST, List[AST]], **kwargs: AST):
