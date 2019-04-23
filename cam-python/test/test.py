@@ -1,5 +1,3 @@
-
-
 import sys
 import os
 import json
@@ -19,5 +17,5 @@ class Test(unittest.TestCase):
     def test_too_known(self):
         sess = LinkSession()
         # load_cam('./test.cam', sess)
-        load_cam('/tmp/idris17808-1', sess)                                                                                                                                                                        
+        load_cam('/tmp/idris19892-1', sess)
 unittest.main()

@@ -1,8 +1,7 @@
 from subprocess import check_call, PIPE, Popen
 import re
 
-julia = r"""
-using CamJulia
+julia = r"""using CamJulia
 using MLStyle
 
 rmlines = @λ begin
@@ -23,9 +22,7 @@ end
 @load_cam "{}"
 """
 
-python = r"""
-
-import sys
+python = r"""import sys
 import os
 import json
 import unittest

@@ -1,4 +1,3 @@
-
 using CamJulia
 using MLStyle
 
@@ -17,4 +16,4 @@ macro load_cam(path)
 end
 
 # @load_cam "./test.cam"
-@load_cam "/tmp/idris17808-1"
+@load_cam "/tmp/idris19892-1"
