@@ -1,9 +1,7 @@
-import json
 from dataclasses import dataclass
 from typing import *
 from idris_cam.abstract_machine import *
-from idris_cam.runtime import rt_support
-
+import json
 
 def list_conv(xs):
     return list(map(aeson_to_ir, xs))
@@ -59,8 +57,7 @@ def com_const(cs):
 
 
 def com_internal(cs):
-    return Staged(rt_support[cs])
-
+    return Link(cs)
 
 def com_ch(cs):
     return Const(cs)

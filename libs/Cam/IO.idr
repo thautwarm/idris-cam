@@ -22,5 +22,5 @@ putStrLn boxed = believe_me $ fcall FFun1 (Builtin "println") $ believe_me boxed
 
 public export
 %inline
-toStr : a -> Boxed String
-toStr a = believe_me . unsafePerformIO $ fcall FFun1 (Builtin "to_str") $ believe_me a
+toText : a -> Boxed String
+toText a = believe_me . unsafePerformIO $ fcall FFun1 (Builtin "to_str") $ believe_me a

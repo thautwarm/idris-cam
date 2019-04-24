@@ -6,9 +6,11 @@ from dataclasses import dataclass
 from typing import *
 from enum import Enum
 from toolz import compose
+from idris_cam.runtime import get_runtime
 import ast
 import operator
 import copy
+
 
 T = TypeVar('T')
 
@@ -88,6 +90,14 @@ class Fun(AST):
         print_io(io, '\n', ' ' * (indent + 4))
         return self.body.dump(indent + 4, io)
 
+@dataclass
+class Link(AST):
+    name: str
+
+    def dump(self, indent, io):
+        s = f'link + {self.name}'
+        print_io(io, s)
+        return indent + len(s)
 
 @dataclass
 class App(AST):
@@ -457,9 +467,11 @@ class _Symbol:
 
 class LinkSession:
     syms: Dict[str, _Symbol]
+    rt: dict
 
     def __init__(self):
         self.syms = {}
+        self.rt = get_runtime(self)
 
     def __getitem__(self, s):
         sym = self.syms.get(s, None)
@@ -467,7 +479,8 @@ class LinkSession:
             sym = self.syms[s] = _Symbol(s)
         return sym
 
-def run_code(node, link_session: LinkSession):
+def run_code(node, link_session: LinkSession = None):
+    link_session = link_session or LinkSession()
     lit_ids = {}
 
     def inner(n: Constructs, ctx: Scope):
@@ -478,6 +491,9 @@ def run_code(node, link_session: LinkSession):
             ctx.loc = n.loc
             return inner(n.decorated, ctx)
         cur_loc = ctx.loc
+
+        if isinstance(n, Link):
+            return inner(Staged(link_session.rt[n.name]), ctx)
 
         if isinstance(n, Inspect):
             return ctx.const_register(ctx.prefix)
@@ -679,7 +695,7 @@ fn = _FunctionMaker
 
 Constructs = Union[If, While, Fun, Var, Let, Staged, LetRec, App, Const,
                    Mutate, BlockExpr, DataStructure.List, DataStructure.
-                   Tuple, Located, Proj]
+                   Tuple, Located, Proj, Link]
 
 if __name__ == '__main__':
     add1 = lambda x: x + 1

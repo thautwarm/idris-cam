@@ -94,6 +94,7 @@ rt_support = Dict{String, Any}(
     "prim-strconcat" => string_concat,
     "prim-crash" => throw,
 
+    # io
     "builtin-println" => println,
     "builtin-simple_open" => simple_open,
     "builtin-simple_read" => simple_read,
@@ -117,7 +118,7 @@ rt_support = Dict{String, Any}(
     "builtin-hvect_to_foreign" => to_fhvect,
 
     # string
-    "builtin-to_str" => string,
+    "builtin-to_text" => string,
     "builtin-fstr_to_native" => from_text,
     "builtin-str_to_foreign" => string,
 

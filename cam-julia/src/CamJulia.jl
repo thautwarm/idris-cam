@@ -11,4 +11,11 @@ include("Runtime.jl")
 include("CommonAbstractMachine.jl")
 include("ReadIR.jl")
 
+macro load_cam(path)
+    aeson = ReadIR.load_aeson(path);
+    ir = ReadIR.aeson_to_ir(aeson)
+    x = CAM.ir_to_julia(ir)
+    esc(x)
+end
+
 end # module

@@ -159,7 +159,7 @@ ir_to_julia(ir::IR) =
         BigIntConst(c) || IntConst(c) || DoubleConst(c) ||
         # TODO: str const needs to be unescaped, e.g., '\\a' -> '\a'
         ChConst(c) || BoolConst(c) => c
-        
+
         NilConst => :nothing # kind of tricky for Julia use :nothing to represent nothing in ASTs
 
         Internal(s) => rt_support[s]

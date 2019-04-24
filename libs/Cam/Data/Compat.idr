@@ -65,13 +65,13 @@ implementation Mapping (Boxed String) String where
     toForeign b = believe_me . unsafePerformIO $ fcall1 "str_to_foreign" $ believe_me b
 
 implementation Show (FList t) where
-    show = toNative . toStr
+    show = toNative . toText
 
 implementation Show (FVect n t) where
-    show = toNative . toStr
+    show = toNative . toText
 
 implementation Show (FHVect xs) where
-    show = toNative . toStr
+    show = toNative . toText
 
 public export
 data FModuleSpec : String -> Type where
