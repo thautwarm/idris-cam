@@ -10,63 +10,80 @@ import Cam.Data.Collections
 public export
 interface Mapping a b | a where
     toNative     : a -> b
-    toForeigen   : b -> a
+    toForeign   : b -> a
 
 implementation Mapping (RawInt) Int where
     toNative =  believe_me
-    toForeigen = believe_me
+    toForeign = believe_me
 
 implementation Mapping (RawDouble) Double where
     toNative =  believe_me
-    toForeigen = believe_me
+    toForeign = believe_me
 
 implementation Mapping (RawInteger) Integer where
     toNative =  believe_me
-    toForeigen = believe_me
+    toForeign = believe_me
 
 implementation Mapping (RawUnit) Unit where
     toNative =  believe_me
-    toForeigen = believe_me
+    toForeign = believe_me
 
 implementation Mapping (RawChar) Char where
     toNative =  believe_me
-    toForeigen = believe_me
+    toForeign = believe_me
 
 implementation Mapping (FList t) (List (ComRaw t)) where
     toNative a = believe_me . unsafePerformIO $
                     camCall (FList t -> FFI.IO Ptr) (Builtin "flist_to_native") a
-    toForeigen b = unsafePerformIO $
+    toForeign b = unsafePerformIO $
                     camCall (Ptr -> FFI.IO  (FList t)) (Builtin "list_to_foreign") (believe_me b)
 
 implementation Mapping (FVect n t) (Vect n (ComRaw t)) where
     toNative {n} a = believe_me . unsafePerformIO $
-                        camCall (Nat -> FVect n t -> FFI.IO Ptr) (Builtin "fvect_to_native") n a
-    toForeigen {n} b = unsafePerformIO $
-                        camCall (Nat -> Ptr -> FFI.IO  (FVect n t)) (Builtin "vect_to_foreign") n (believe_me b)
-
+                        let sig = Integer -> FVect n t -> FFI.IO Ptr in
+                        let n = the Integer $ fromNat n in
+                        camCall sig (Builtin "fvect_to_native") n a
+    toForeign {n} b = unsafePerformIO $
+                        let sig = Integer -> Ptr -> FFI.IO  (FVect n t) in
+                        let n = the Integer $ fromNat n in
+                        camCall sig (Builtin "vect_to_foreign") n (believe_me b)
 
 mapTypes : Vect n Type -> Vect n Type
 mapTypes ts = map ComRaw ts
 
 implementation Mapping (FHVect xs) (HVect (mapTypes xs)) where
     toNative {xs} a = believe_me . unsafePerformIO $
-                        camCall (Nat -> FHVect xs -> FFI.IO Ptr) (Builtin "fhvect_to_native") (size xs) a
-    toForeigen {xs} b = unsafePerformIO $
-                        camCall (Nat -> Ptr -> FFI.IO  (FHVect xs)) (Builtin "hvect_to_foreign") (size xs) (believe_me b)
+                        let sig = Integer -> FHVect xs -> FFI.IO Ptr in
+                        let n = the Integer . fromNat $ size xs in
+                        camCall sig (Builtin "fhvect_to_native") n a
+    toForeign {xs} b = unsafePerformIO $
+                        let sig = Integer -> Ptr -> FFI.IO  (FHVect xs) in
+                        let n = the Integer . fromNat $ size xs in
+                        camCall sig (Builtin "hvect_to_foreign") n (believe_me b)
 
-mutual
-    implementation Mapping (ComRaw String) String where
-        toNative a = unsafePerformIO $
+implementation Mapping (ComRaw String) String where
+    toNative a = unsafePerformIO $
                         camCall (ComRaw String -> FFI.IO String) (Builtin "fstr_to_native") a
 
-        toForeigen b = unsafePerformIO $
+    toForeign b = unsafePerformIO $
                         camCall (String -> FFI.IO (ComRaw String)) (Builtin "str_to_foreign") b
 
-    implementation Show (FList t) where
-        show = toNative . toStr
+implementation Show (FList t) where
+    show = toNative . toStr
 
-    implementation Show (FVect n t) where
-        show = toNative . toStr
+implementation Show (FVect n t) where
+    show = toNative . toStr
 
-    implementation Show (FHVect xs) where
-        show = toNative . toStr
+implementation Show (FHVect xs) where
+    show = toNative . toStr
+
+public export
+mapHVect : {F: Type -> Type} -> (f : a -> F a) -> HVect xs -> HVect (map F xs)
+mapHVect f xs = believe_me . unsafePerformIO $
+                   let sig = (Ptr -> Ptr -> FFI.IO Ptr) in
+                   let f   = believe_me f in
+                   let xs  = believe_me xs in
+                   camCall sig  (Builtin "map_hvect") f xs
+
+    
+    

@@ -93,10 +93,24 @@ rt_support = Dict{String, Any}(
     "builtin-reverse_flist" => reverse,
     "builtin-flist_to_native" => from_flist,
     "builtin-list_to_foreign" => to_flist,
+
+    # fvect
+    "builtin-reverse_fvect" => reverse,
+    "builtin-fvect_to_native" => from_fvect,
+    "builtin-vect_to_foreign" => to_fvect,
+
+    # fhvect
+    "builtin-reverse_fhvect" => reverse,
+    "builtin-fhvect_to_native" => from_fhvect,
+    "builtin-hvect_to_foreign" => to_fhvect,
+
     # string
     "builtin-to_str" => string,
     "builtin-fstr_to_native" => from_text,
     "builtin-str_to_foreign" => string,
+
+    "builtin-map_hvect" => map_hvect,
+
 
 )
 end

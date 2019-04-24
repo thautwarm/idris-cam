@@ -30,10 +30,12 @@ testSimple = do
       println $ show e
       println $ show hvec
       println $ show hvecItem
-      println $ show flist_rev
+      println $ "test flist reverse :" ++ show flist_rev
+      println $ "test flist to list :" ++ show lst2
+      println $ "test fhvect:" ++ show fhvect
   where
       lst : List RawInteger
-      lst = map toForeigen [1, 2, 3]
+      lst = map toForeign [1, 2, 3]
 
       a : Vect 3 Int
       a = [1, 2, 3]
@@ -56,7 +58,10 @@ testSimple = do
       hvec2 = reverse hvec
 
       flist : FList Integer
-      flist = toForeigen lst
+      flist = toForeign lst
+      
+      lst2  : List Integer
+      lst2 = map toNative (toNative flist)
 
       flist_item : ComRaw Integer
       flist_item = index 2 flist
@@ -66,9 +71,12 @@ testSimple = do
 
       flist_size: Nat
       flist_size = size flist
+  
+      toFI : Integer -> ComRaw Int
+      toFI = toForeign . the Int . fromInteger
 
       fvect: FVect 2 Int
-      fvect = believe_me()
+      fvect = toForeign (with Vect [toFI 1, toFI 3])
 
       fvect_item : ComRaw Int
       fvect_item = index (the (Fin _) $ fromInteger 1) fvect
@@ -77,7 +85,7 @@ testSimple = do
       fvect_rev = reverse fvect
 
       fhvect : FHVect [String, Int]
-      fhvect = believe_me()
+      fhvect = toForeign $ the (HVect _) [toForeign "1", toFI 3]
 
       fhvect_item : ComRaw String
       fhvect_item = index (the (Fin _) $ fromInteger 0) fhvect
