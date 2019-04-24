@@ -19,12 +19,13 @@ f d = typeSize d
 
 testSimple : FFI.IO ()
 testSimple = do
-      mlstyle <- camImport $ TheModule "MLStyle"
-      fprintln mlstyle           -- fprintln works for only foreign objects
-      mlstyle_gen_match <- camImportFrom mlstyle "gen_match"
-      println mlstyle_gen_match  -- println works for all objects
+      sklearn <- camImport $ TheModule "sklearn"
+      fprintln sklearn           -- fprintln works for only foreign objects
+      external_mod <- camImportFrom sklearn "externals"
+      println external_mod       -- println works for all objects
       file <- openFile "./text.txt" "r"
       text <- readAllText file
+      closeFile file
       fprintln $ text
       println $ show hvec2
       putStrLn $ show a           -- putStrLn works for only String

@@ -14,10 +14,8 @@ simple_read(f::FileHandler) = open(f.filename) do f
     from_text(read(f, String))
 end
 
-open_file(filename::String, mode::String) = FileHandler(filename, mode)
-read_all_text(f::FileHandler) = open(f.filename, f.mode) do f
-   read(f, String)
-end
+
+read_all_text(f::IOStream) = read(f, String)
 
 filesystem_pipe(::Nothing) = (1, 2)
 
@@ -99,7 +97,8 @@ rt_support = Dict{String, Any}(
     "builtin-simple_open" => simple_open,
     "builtin-simple_read" => simple_read,
     "builtin-filesystem_pipe" => filesystem_pipe,
-    "builtin-filesystem_open_file" => open_file,
+    "builtin-filesystem_open_file" => open,
+    "builtin-filesystem_close_file" => close,
     "builtin-filesystem_read_all_text" => read_all_text,
 
     # flist

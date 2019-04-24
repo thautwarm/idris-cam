@@ -11,7 +11,6 @@ import ast
 import operator
 import copy
 
-
 T = TypeVar('T')
 
 
@@ -482,7 +481,16 @@ class LinkSession:
 def run_code(node, link_session: LinkSession = None):
     link_session = link_session or LinkSession()
     lit_ids = {}
+    count_stack = 0
 
+    def wrap(f):
+        def call(a, b):
+            nonlocal  count_stack
+            ret = f(a, b)
+            return ret
+        return call
+
+    @wrap
     def inner(n: Constructs, ctx: Scope):
         if isinstance(n, Var):
             return ctx.get_var(n.name)
@@ -493,7 +501,14 @@ def run_code(node, link_session: LinkSession = None):
         cur_loc = ctx.loc
 
         if isinstance(n, Link):
-            return inner(Staged(link_session.rt[n.name]), ctx)
+            value = link_session.rt[n.name]
+            key = value, type(value)
+            if key not in lit_ids:
+                name = lit_ids[key] = f"lit_{len(lit_ids)}"
+            else:
+                name = lit_ids[key]
+
+            return ctx.new_register(name)
 
         if isinstance(n, Inspect):
             return ctx.const_register(ctx.prefix)
@@ -581,11 +596,14 @@ def run_code(node, link_session: LinkSession = None):
         if isinstance(n, Staged):
             value = n.value
             key = value, type(value)
-            if key not in lit_ids:
-                name = lit_ids[key] = f"lit_{len(lit_ids)}"
-            else:
-                name = lit_ids[key]
-
+            try:
+                if key not in lit_ids:
+                    name = lit_ids[key] = f"lit_{len(lit_ids)}"
+                else:
+                    name = lit_ids[key]
+            except RecursionError as e:
+                print(link_session.rt['prim-strlen'](key[0]))
+                raise e
             return ctx.new_register(name)
 
         if isinstance(n, App):

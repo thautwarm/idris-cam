@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from typing import *
 from idris_cam.abstract_machine import *
+from idris_cam.idris_apis import IdrisStr
 import json
+
 
 def list_conv(xs):
     return list(map(aeson_to_ir, xs))
@@ -59,15 +61,23 @@ def com_const(cs):
 def com_internal(cs):
     return Link(cs)
 
+
 def com_ch(cs):
     return Const(cs)
 
 
 def com_str(cs):
-    return Const(eval(repr(cs).replace(r'\\', '\\')))
+    s = eval(repr(cs).replace(r'\\', '\\'))
+    ret = ()
+    wrap = IdrisStr
+    for each in s[::-1]:
+        ret = wrap((each, ret))
+    return Staged(ret)
+
 
 def com_sym(cs):
     return Symbol(cs)
+
 
 def com_float(c):
     return Const(float(c))

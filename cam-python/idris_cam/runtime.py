@@ -31,6 +31,8 @@ def get_runtime(link_session):
         def call(arg):
             return from_text(f(arg))
         return call
+    def cmp(x, y):
+        return x == y
 
     return {
         'cam-rt.cmp': operator.eq,
@@ -54,7 +56,7 @@ def get_runtime(link_session):
         'prim-or': operator.or_,
 
         # STR METHOD1
-        'prim-streq': operator.eq,
+        'prim-streq': dep['str_eq'],
         'prim-strlen': dep['str_len'],
         'prim-strindex': dep['str_index'],
         'prim-strlt': dep['str_lt'],
@@ -87,6 +89,7 @@ def get_runtime(link_session):
         "builtin-simple_read" : dep['read_all_text'],
         "builtin-filesystem_pipe" : pipe,
         "builtin-filesystem_open_file": open,
+        "builtin-filesystem_close_file": lambda f: f.close(),
         "builtin-filesystem_read_all_text" : dep['read_all_text'],
 
         # flist
@@ -105,7 +108,7 @@ def get_runtime(link_session):
         "builtin-hvect_to_foreign" : dep['to_fhvect'],
 
         # string
-        "builtin-to_text" : to_text,
+        "builtin-to_text" : str,
         "builtin-fstr_to_native" : from_text,
         "builtin-str_to_foreign" : to_text,
 

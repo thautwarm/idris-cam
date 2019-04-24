@@ -31,6 +31,12 @@ openFile filename mode =
           let mode = believe_me . the (Boxed String) $ toForeign mode in
           believe_me $ fcall2 "filesystem_open_file" filename mode
 
+public export
+%inline
+closeFile : FileHandler ->  IO ()
+closeFile f =
+        let f = believe_me f in
+        believe_me $ fcall1 "filesystem_close_file" f
 
 public export
 %inline
