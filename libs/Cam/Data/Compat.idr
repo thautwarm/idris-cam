@@ -12,61 +12,57 @@ interface Mapping a b | a where
     toNative     : a -> b
     toForeign   : b -> a
 
-implementation Mapping (RawInt) Int where
+implementation Mapping (Boxed Int) Int where
     toNative =  believe_me
     toForeign = believe_me
 
-implementation Mapping (RawDouble) Double where
+implementation Mapping (Boxed Double) Double where
     toNative =  believe_me
     toForeign = believe_me
 
-implementation Mapping (RawInteger) Integer where
+implementation Mapping (Boxed Integer) Integer where
     toNative =  believe_me
     toForeign = believe_me
 
-implementation Mapping (RawUnit) Unit where
+implementation Mapping (Boxed Unit) Unit where
     toNative =  believe_me
     toForeign = believe_me
 
-implementation Mapping (RawChar) Char where
+implementation Mapping (Boxed Char) Char where
     toNative =  believe_me
     toForeign = believe_me
 
-implementation Mapping (FList t) (List (ComRaw t)) where
-    toNative a = believe_me . unsafePerformIO $
-                    camCall (FList t -> FFI.IO Ptr) (Builtin "flist_to_native") a
-    toForeign b = unsafePerformIO $
-                    camCall (Ptr -> FFI.IO  (FList t)) (Builtin "list_to_foreign") (believe_me b)
+implementation Mapping (FList t) (List (Boxed t)) where
+    toNative a = believe_me . unsafePerformIO $ fcall1 "flist_to_native" $ believe_me a
+    toForeign b = believe_me . unsafePerformIO $ fcall1 "list_to_foreign" $ believe_me b
 
-implementation Mapping (FVect n t) (Vect n (ComRaw t)) where
+implementation Mapping (FVect n t) (Vect n (Boxed t)) where
     toNative {n} a = believe_me . unsafePerformIO $
                         let sig = Integer -> FVect n t -> FFI.IO Ptr in
-                        let n = the Integer $ fromNat n in
-                        camCall sig (Builtin "fvect_to_native") n a
-    toForeign {n} b = unsafePerformIO $
+                        let n = believe_me . the Integer $ fromNat n in
+                        fcall2 "fvect_to_native" n $ believe_me a
+
+    toForeign {n} b = believe_me . unsafePerformIO $
                         let sig = Integer -> Ptr -> FFI.IO  (FVect n t) in
-                        let n = the Integer $ fromNat n in
-                        camCall sig (Builtin "vect_to_foreign") n (believe_me b)
+                        let n = believe_me . the Integer $ fromNat n in
+                        fcall2 "vect_to_foreign" n $ believe_me b
 
 mapTypes : Vect n Type -> Vect n Type
-mapTypes ts = map ComRaw ts
+mapTypes ts = map Boxed ts
 
 implementation Mapping (FHVect xs) (HVect (mapTypes xs)) where
     toNative {xs} a = believe_me . unsafePerformIO $
                         let sig = Integer -> FHVect xs -> FFI.IO Ptr in
-                        let n = the Integer . fromNat $ size xs in
-                        camCall sig (Builtin "fhvect_to_native") n a
-    toForeign {xs} b = unsafePerformIO $
+                        let n = believe_me . the Integer . fromNat $ size xs in
+                        fcall2 "fhvect_to_native" n $ believe_me a
+    toForeign {xs} b = believe_me . unsafePerformIO $
                         let sig = Integer -> Ptr -> FFI.IO  (FHVect xs) in
-                        let n = the Integer . fromNat $ size xs in
-                        camCall sig (Builtin "hvect_to_foreign") n (believe_me b)
+                        let n = believe_me . the Integer . fromNat $ size xs in
+                        fcall2 "hvect_to_foreign" n $ believe_me b
 
-implementation Mapping (ComRaw String) String where
-    toNative a = unsafePerformIO $
-                        camCall (ComRaw String -> FFI.IO String) (Builtin "fstr_to_native") a
-
-    toForeign b = unsafePerformIO $
-                        camCall (String -> FFI.IO (ComRaw String)) (Builtin "str_to_foreign") b
+implementation Mapping (Boxed String) String where
+    toNative a = believe_me . unsafePerformIO $ fcall1 "fstr_to_native" $ believe_me a
+    toForeign b = believe_me . unsafePerformIO $ fcall1 "str_to_foreign" $ believe_me b
 
 implementation Show (FList t) where
     show = toNative . toStr
@@ -75,19 +71,24 @@ implementation Show (FVect n t) where
     show = toNative . toStr
 
 implementation Show (FHVect xs) where
-    show = toNative . toStr                        
+    show = toNative . toStr
 
 public export
-data CamModule : String -> Type where
-  TheModule : (s : String) -> CamModule s
+data FModuleSpec : String -> Type where
+  TheModule : (s : String) -> FModuleSpec s
+
+||| foreign module
+public export
+FModule : String -> Type
+FModule s = Boxed (FModuleSpec s)
 
 %inline
-camImport : CamModule s -> FFI.IO (ComRaw Ptr)
-camImport {s} _ =
-    camCall (String -> FFI.IO (ComRaw Ptr)) (Builtin "get_module") s
+camImport : FModuleSpec s -> FFI.IO (FModule s)
+camImport {s} _ = believe_me $ fcall1 "get_module" $ believe_me s
 
 %inline
-camImportFrom : ComRaw Ptr -> String -> FFI.IO (ComRaw Ptr)
-camImportFrom p s =
-    let fieldname = toForeign s in
-    camCall (ComRaw Ptr -> ComRaw String -> FFI.IO (ComRaw Ptr)) (Builtin "module_property") p fieldname
+camImportFrom : FModule mod_name -> String -> FFI.IO Unsafe
+camImportFrom {mod_name} m str =
+    let fieldname = believe_me $ the (Boxed String) $ toForeign str in
+    fcall2 "module_property" (believe_me m) fieldname
+

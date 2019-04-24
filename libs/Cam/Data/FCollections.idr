@@ -22,57 +22,56 @@ import Cam.IO
 %hide Vect.index
 %hide HVect.index
 
-instantiate : String -> Ptr
-instantiate s = unsafePerformIO $ camCall (FFI.IO Ptr) (Builtin s)
-
 -- maybe overflow
-indexRawOF : String -> Int -> Ptr -> Ptr
+%inline
+indexRawOF : String -> Int -> Unsafe -> Unsafe
 indexRawOF s i v = let builtin = Builtin s in
-                   let sig = Int -> Ptr -> FFI.IO Ptr in
-                   let box = camCall sig builtin i v in
-                   unsafePerformIO box
+                   let i = believe_me i in
+                   let box = fcall FFun2 builtin i v in
+                   believe_me $ unsafePerformIO box
 
-indexRaw : String -> Integer -> Ptr -> Ptr
+%inline
+indexRaw : String -> Integer -> Unsafe -> Unsafe
 indexRaw s i v = let builtin = Builtin s in
-                  let sig = Integer -> Ptr -> FFI.IO Ptr in
-                  let box = camCall sig builtin i v in
-                  unsafePerformIO box
+                 let i = believe_me i in
+                 let box = fcall FFun2 builtin i v in
+                 believe_me $ unsafePerformIO box
+
 
 -- using `nat` data structure to index
-indexRawNat : String -> Nat -> Ptr -> Ptr
+%inline
+indexRawNat : String -> Nat -> Unsafe -> Unsafe
 indexRawNat s i v = let builtin = Builtin s in
-                  let sig = Nat -> Ptr -> FFI.IO Ptr in
-                  let box = camCall sig builtin i v in
-                  unsafePerformIO box
+                    let i = believe_me i in
+                    let box = fcall FFun2 builtin i v in
+                    believe_me $ unsafePerformIO box
 
 -- Implementations for FList
-
-
+%inline
 sizeFList : FList a -> Integer
 sizeFList lst = assert_total $
     let builtin = Builtin "size_flist" in
-    let box = camCall (FList a -> FFI.IO Integer) builtin lst in
-    unsafePerformIO box
+    let box = fcall FFun1 builtin (believe_me lst) in
+    believe_me $ unsafePerformIO box
 
 implementation Sized (FList t) where
  -- It seems that using `size = sizeFlist` causes bad properties, not sure yet
   size lst = fromInteger $ sizeFList lst
 
 implementation Indexable (FList t) Integer where
-  eltype {t} _ _ = ComRaw t
+  eltype {t} _ _ = Boxed t
   index {t} i xs = believe_me e
     where
-      src : Ptr
+      src : Unsafe
       src = believe_me xs
-      e : Ptr
+      e : Unsafe
       e = indexRaw "index_flist" i src
 
 
 reverseFList : FList a -> FList a
 reverseFList lst = let builtin = Builtin "reverse_flist" in
-                   let box = camCall (FList a -> FFI.IO (FList a)) builtin lst in
-                   unsafePerformIO box
-
+                   let box = fcall FFun1 builtin (believe_me lst) in
+                   believe_me $ unsafePerformIO box
 
 implementation Reversable (FList a) (FList a) where
   reverse = reverseFList
@@ -89,20 +88,20 @@ implementation Sized (FVect n a) where
   size vec = sizeFVect vec
 
 implementation Indexable (FVect n t) (Fin n) where
-  eltype {t} _ _ = ComRaw t
+  eltype {t} _ _ = Boxed t
   index fin vec = believe_me e
     where
       i : Integer
       i = finToInteger fin
-      src : Ptr
+      src : Unsafe
       src = believe_me vec
-      e : Ptr
+      e : Unsafe
       e = indexRaw "index_fvect" i src
 
 reverseFVect : FVect n a -> FVect n a
 reverseFVect {n} vec = let builtin = Builtin "reverse_fvect" in
-                       let box = camCall (FVect n a -> FFI.IO (FVect n a)) builtin vec in
-                       unsafePerformIO box
+                       let box = fcall FFun1 builtin $ believe_me vec in
+                       believe_me $ unsafePerformIO box
 
 implementation Reversable (FVect n a) (FVect n a) where
   reverse vec = reverseFVect vec
@@ -125,20 +124,20 @@ implementation Sized (FHVect xs) where
 
 
 implementation Indexable (FHVect xs) (Fin (size xs)) where
-  eltype {xs} fin _ = ComRaw (index fin xs)
+  eltype {xs} fin _ = Boxed (index fin xs)
   index fin vec = believe_me e
     where
       i : Integer
       i = finToInteger fin
-      src : Ptr
+      src : Unsafe
       src = believe_me vec
-      e : Ptr
+      e : Unsafe
       e = indexRaw "index_fhvect" i src
 
 reverseFHVect : FHVect xs -> FHVect (reverseVect xs)
 reverseFHVect {xs} vec = let builtin = Builtin "reverse_fvect" in
-                         let box = camCall (FHVect xs -> FFI.IO(FHVect (reverseVect xs))) builtin vec in
-                         unsafePerformIO box
+                         let box = fcall FFun1 builtin $ believe_me vec in
+                         believe_me $ unsafePerformIO box
 
 implementation Reversable (FHVect xs) (FHVect (reverseVect xs)) where
   reverse vec = reverseFHVect vec

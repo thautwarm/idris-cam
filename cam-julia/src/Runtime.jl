@@ -4,13 +4,19 @@ using MLStyle
 using CamJulia.IdrisList
 using CamJulia.IdrisForeignCollections
 
-struct FakeFileHandler
+struct FileHandler
     filename :: String
+    mode     :: String
 end
 
-simple_open(filename::IdrisString) = FakeFileHandler(string(filename))
-simple_read(f::FakeFileHandler) = open(f.filename) do f
+simple_open(filename::IdrisString) = FileHandler(string(filename), "r")
+simple_read(f::FileHandler) = open(f.filename) do f
     from_text(read(f, String))
+end
+
+open_file(filename::String, mode::String) = FileHandler(filename, mode)
+read_all_text(f::FileHandler) = open(f.filename, f.mode) do f
+   read(f, String)
 end
 
 filesystem_pipe(::Nothing) = (1, 2)
@@ -92,6 +98,8 @@ rt_support = Dict{String, Any}(
     "builtin-simple_open" => simple_open,
     "builtin-simple_read" => simple_read,
     "builtin-filesystem_pipe" => filesystem_pipe,
+    "builtin-filesystem_open_file" => open_file,
+    "builtin-filesystem_read_all_text" => read_all_text,
 
     # flist
     "builtin-reverse_flist" => reverse,
@@ -115,5 +123,7 @@ rt_support = Dict{String, Any}(
 
     "builtin-map_hvect" => map_hvect,
     "builtin-module_property" => module_property,
+
 )
 end
+

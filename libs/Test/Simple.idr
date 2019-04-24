@@ -14,22 +14,20 @@ import Data.HVect
 
 %access export
 
-%inline
-capitalize : String -> FFI.IO String
-capitalize s = camCall (String -> FFI.IO String) (Builtin "str_cap") s
-
-
 f : StaticSized c => TypeHolder c -> Nat
 f d = typeSize d
 
 testSimple : FFI.IO ()
 testSimple = do
       mlstyle <- camImport $ TheModule "MLStyle"
-      fprintln mlstyle
+      fprintln mlstyle           -- fprintln works for only foreign objects
       mlstyle_gen_match <- camImportFrom mlstyle "gen_match"
-      fprintln mlstyle_gen_match
+      println mlstyle_gen_match  -- println works for all objects
+      file <- openFile "./text.txt" "r"
+      text <- readAllText file
+      fprintln $ text
       println $ show hvec2
-      println $ show a
+      putStrLn $ show a           -- putStrLn works for only String
       println $ show reva
       println $ show e
       println $ show hvec
@@ -38,7 +36,7 @@ testSimple = do
       println $ "test flist to list :" ++ show lst2
       println $ "test fhvect:" ++ show fhvect
   where
-      lst : List RawInteger
+      lst : List(Boxed Integer)
       lst = map toForeign [1, 2, 3]
 
       a : Vect 3 Int
@@ -54,7 +52,7 @@ testSimple = do
 
       hvec : HVect [Int, Double]
       hvec = [1, 2.0]
-            
+
       hvecItem : Double
       hvecItem = index (the (Fin _) $ fromInteger 1) hvec
 
@@ -63,11 +61,11 @@ testSimple = do
 
       flist : FList Integer
       flist = toForeign lst
-      
+
       lst2  : List Integer
       lst2 = map toNative (toNative flist)
 
-      flist_item : ComRaw Integer
+      flist_item : Boxed Integer
       flist_item = index 2 flist
 
       flist_rev: FList Integer
@@ -75,14 +73,14 @@ testSimple = do
 
       flist_size: Nat
       flist_size = size flist
-  
-      toFI : Integer -> ComRaw Int
+
+      toFI : Integer -> Boxed Int
       toFI = toForeign . the Int . fromInteger
 
       fvect: FVect 2 Int
       fvect = toForeign (with Vect [toFI 1, toFI 3])
 
-      fvect_item : ComRaw Int
+      fvect_item : Boxed Int
       fvect_item = index (the (Fin _) $ fromInteger 1) fvect
 
       fvect_rev: FVect 2 Int
@@ -91,11 +89,11 @@ testSimple = do
       fhvect : FHVect [String, Int]
       fhvect = toForeign $ the (HVect _) [toForeign "1", toFI 3]
 
-      fhvect_item : ComRaw String
+      fhvect_item : Boxed String
       fhvect_item = index (the (Fin _) $ fromInteger 0) fhvect
 
       fhvect_rev: FHVect [Int, String]
       fhvect_rev = reverse fhvect
 
-      hvect_f : HVect [RawInt, ComRaw String]
+      hvect_f : HVect [Boxed Int, Boxed String]
       hvect_f = toNative fhvect_rev

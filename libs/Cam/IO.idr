@@ -1,22 +1,26 @@
 module IO
 import Cam.FFI
 
-
+||| print native(idris side) object
 public export
 %inline
-println : String -> IO ()
-println s = camCall (String -> IO ()) (Builtin "println") s
+println : a -> IO ()
+println s = believe_me $ fcall FFun1 (Builtin "println") $ believe_me s
 
 ||| print any foreign object
 public export
 %inline
-fprintln : ComRaw a -> IO ()
-fprintln s = camCall (ComRaw a -> IO ()) (Builtin "println") s
+fprintln : Boxed a -> IO ()
+fprintln boxed = believe_me $ fcall FFun1 (Builtin "println") $ believe_me boxed
+
+||| print any object
+public export
+%inline
+putStrLn : String -> IO ()
+putStrLn boxed = believe_me $ fcall FFun1 (Builtin "println") $ believe_me boxed
 
 
 public export
 %inline
-toStr : a -> ComRaw String
-toStr a = unsafePerformIO $
-            camCall (Ptr -> IO (ComRaw String)) (Builtin "to_str") (believe_me a)
-
+toStr : a -> Boxed String
+toStr a = believe_me . unsafePerformIO $ fcall FFun1 (Builtin "to_str") $ believe_me a
