@@ -79,9 +79,9 @@ mkDecls :: [DDecl] -> ComIR -- top level let recs
 mkDecls xs =
     ComLetrec (fmap decl xs) (ComApp (toIR $ sMN 0 "runMain") [])
 
-camErr = ComInternal "idris-cam-rt.err"
-camCmp = ComInternal "idris-cam-rt.cmp"
-camIs = ComInternal "idris-cam-rt.is"
+camErr = ComInternal "cam-rt.err"
+camCmp = ComInternal "cam-rt.cmp"
+camIs = ComInternal "cam-rt.is"
 
 class HasIR a where
     toIR :: a -> ComIR
@@ -97,7 +97,6 @@ instance HasIR Const where
         Str s -> ComStr s
         BI i -> ComBigInt i
         a -> error $ "not impl: " ++ show a
-
 
 instance HasIR DExp where
     toIR = \case

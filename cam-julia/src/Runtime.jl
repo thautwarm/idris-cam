@@ -39,9 +39,9 @@ end
 
 export rt_support
 rt_support = Dict{String, Any}(
-    "idris-cam-rt.cmp" => (==),
-    "idris-cam-rt.err" => throw,
-    "idris-cam-rt.is" => is,
+    "cam-rt.cmp" => (==),
+    "cam-rt.err" => throw,
+    "cam-rt.is" => is,
 
     "prim-plus" => (+),
     "prim-minus" => (-),
