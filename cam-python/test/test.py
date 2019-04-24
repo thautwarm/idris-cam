@@ -17,5 +17,5 @@ class Test(unittest.TestCase):
     def test_too_known(self):
         sess = LinkSession()
         # load_cam('./test.cam', sess)
-        load_cam('/tmp/idris21400-1', sess)
+        load_cam('/tmp/idris23426-1', sess)
 unittest.main()

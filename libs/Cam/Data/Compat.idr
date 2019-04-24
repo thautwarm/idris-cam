@@ -87,8 +87,7 @@ camImport {s} _ =
     camCall (String -> FFI.IO (ComRaw Ptr)) (Builtin "get_module") s
 
 %inline
-camImportFrom : ComRaw Ptr -> String -> ComRaw Ptr
+camImportFrom : ComRaw Ptr -> String -> FFI.IO (ComRaw Ptr)
 camImportFrom p s =
-  unsafePerformIO $
     let fieldname = toForeign s in
     camCall (ComRaw Ptr -> ComRaw String -> FFI.IO (ComRaw Ptr)) (Builtin "module_property") p fieldname

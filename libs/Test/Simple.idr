@@ -26,6 +26,8 @@ testSimple : FFI.IO ()
 testSimple = do
       mlstyle <- camImport $ TheModule "MLStyle"
       fprintln mlstyle
+      mlstyle_gen_match <- camImportFrom mlstyle "gen_match"
+      fprintln mlstyle_gen_match
       println $ show hvec2
       println $ show a
       println $ show reva
