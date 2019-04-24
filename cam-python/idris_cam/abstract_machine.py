@@ -481,16 +481,7 @@ class LinkSession:
 def run_code(node, link_session: LinkSession = None):
     link_session = link_session or LinkSession()
     lit_ids = {}
-    count_stack = 0
 
-    def wrap(f):
-        def call(a, b):
-            nonlocal  count_stack
-            ret = f(a, b)
-            return ret
-        return call
-
-    @wrap
     def inner(n: Constructs, ctx: Scope):
         if isinstance(n, Var):
             return ctx.get_var(n.name)

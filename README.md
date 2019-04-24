@@ -47,49 +47,47 @@ Above command compiles `idris-cam/libs/Test/Simple.idr` into `.cam` file.
 
 ```idris
 -- idris-cam/libs/Test/Simple.idr
-
 module Test.Simple
 import Cam.FFI
 import Cam.OS.FileSystem
 import Cam.IO
 import Cam.Data.Collections
+import Cam.Data.FCollections
+import Cam.Data.Compat
 import Data.Vect
 import Data.HVect
 
--- hide them for we have adhoc `index` from type class Indexable!
 %hide HVect.index
 %hide Vect.index
+%hide Vect.reverse
 
 %access export
 
+f : StaticSized c => TypeHolder c -> Nat
+f d = typeSize d
+
 testSimple : FFI.IO ()
 testSimple = do
-      println $ show hvec2
-      println $ show a
-      println $ show reva
-      println $ show e
-      println $ show hvec
-      println $ show hvecItem
-  where
-        a : Vect 3 Int
-        a = [1, 2, 3]
-        nnn : Nat
-        nnn = f (MkTypeHolder (Vect 3 Int))
+      -- In Julia, use "MLStyle" or other Julia module.
+      sklearn <- camImport $ TheModule "sklearn"
 
-        reva : Vect 3 Int
-        reva = reverse a
+      -- fprintln works for only foreign objects
+      fprintln sklearn
 
-        e : Int
-        e = index (the (Fin _) $ fromInteger 1) a
+      -- get property of module
+      external_mod <- camImportFrom sklearn "externals"
 
-        hvec : HVect [Int, Double]
-        hvec = [1, 2.0]
+      -- println works for all objects
+      println external_mod
 
-        hvecItem : Double
-        hvecItem = index (the (Fin _) $ fromInteger 1) hvec
-
-        hvec2 : HVect [Double, Int]
-        hvec2 = reverse hvec
+      file <- openFile "./text.txt" "r"
+      text <- readAllText file
+      closeFile file
+      fprintln $ text
+      println $ "test hvec: " show hvec
+    where
+      hvec : HVect [Double, Int]
+      hvec = reverse [1.0, 5]
 ```
 
 ### Test in Python
@@ -98,12 +96,11 @@ testSimple = do
 
 ~/github/idris-cam | master> cd cam-python/test && python test.py
 
-[2.0,1]
-[1, 2, 3]
-[3, 2, 1]
-2
-[1,2.0]
-2.0
+<module 'sklearn' from '/home/redbq/Software/Anaconda/lib/python3.7/site-packages/sklearn/__init__.py'>
+<module 'sklearn.externals' from '/home/redbq/Software/Anaconda/lib/python3.7/site-packages/sklearn/externals/__init__.py'>
+啊，太懂了！太懂Idris Python辣！
+
+test hvec: [1.0, 5]
 .
 ----------------------------------------------------------------------
 Ran 1 test in 0.177s
@@ -119,14 +116,15 @@ OK
 ~/github/idris-cam | master> cd cam-julia
 julia> ]
 v1.1> activate .
-CamJulia> test
+(CamJulia) pkg> test
+   Testing CamJulia
+ Resolving package versions...
 
-[2.0,1]
-[1, 2, 3]
-[3, 2, 1]
-2
-[1,2.0]
-2.0
+MLStyle
+MLStyle.MatchCore.gen_match
+啊，太懂了！太懂Idris Julia辣！
+
+test hvec: [1.0, 5]
 ```
 
 
