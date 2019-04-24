@@ -107,7 +107,6 @@ end
     x <: Tuple ? :(x[i]) : :(if i === 1; x else throw("internal runtime error") end)
 end
 
-
 ir_to_julia(ir::IR) =
     @match ir begin
         SymConst(Sym(sym)) => QuoteNode(sym)
@@ -128,8 +127,15 @@ ir_to_julia(ir::IR) =
             :($s = $value)
         Fun([Sym(s) for s in args], Julia(body)) =>
             :(function ($(args...), ) $body end)
+
+        App(Internal("builtin-get_module"), [StrConst(Sym(c))]) => quote
+            @eval import $c
+            $c
+        end
+
         App(Julia(fn), [Julia(arg) for arg in args]) =>
             :($fn($(args...), ))
+
         Block([Julia(expr) for expr in seq]) =>
             :(begin $(seq...) end)
         Join([Julia(elt) for elt in elts]) =>
@@ -144,8 +150,8 @@ ir_to_julia(ir::IR) =
 
         BigIntConst(c) || IntConst(c) || DoubleConst(c) ||
         # TODO: str const needs to be unescaped, e.g., '\\a' -> '\a'
-        ChConst(c) || BoolConst(c) =>
-            :($c)
+        ChConst(c) || BoolConst(c) => c
+        
         NilConst => :nothing # kind of tricky for Julia use :nothing to represent nothing in ASTs
 
         Internal(s) => rt_support[s]

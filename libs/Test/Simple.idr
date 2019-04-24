@@ -24,6 +24,8 @@ f d = typeSize d
 
 testSimple : FFI.IO ()
 testSimple = do
+      mlstyle <- camImport $ TheModule "MLStyle"
+      fprintln mlstyle
       println $ show hvec2
       println $ show a
       println $ show reva
@@ -50,7 +52,7 @@ testSimple = do
 
       hvec : HVect [Int, Double]
       hvec = [1, 2.0]
-
+            
       hvecItem : Double
       hvecItem = index (the (Fin _) $ fromInteger 1) hvec
 

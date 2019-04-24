@@ -85,7 +85,6 @@ mutual
     RawChar : Type
     RawChar= ComRaw Char
 
-
     public export
     data ForeignName
        = Builtin String
@@ -105,3 +104,9 @@ public export
 %inline
 camCall: (ty : Type) -> (fname : ForeignName) -> {auto fty : FTy FFICam [] ty} -> ty
 camCall ty fname = foreign FFICam fname ty
+
+
+public export
+%inline
+camAssert: Ptr -> Ptr -> IO ()
+camAssert a b = camCall (Ptr -> Ptr -> IO ()) (Builtin "cam-assert") a b

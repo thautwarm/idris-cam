@@ -75,15 +75,20 @@ implementation Show (FVect n t) where
     show = toNative . toStr
 
 implementation Show (FHVect xs) where
-    show = toNative . toStr
+    show = toNative . toStr                        
 
 public export
-mapHVect : {F: Type -> Type} -> (f : a -> F a) -> HVect xs -> HVect (map F xs)
-mapHVect f xs = believe_me . unsafePerformIO $
-                   let sig = (Ptr -> Ptr -> FFI.IO Ptr) in
-                   let f   = believe_me f in
-                   let xs  = believe_me xs in
-                   camCall sig  (Builtin "map_hvect") f xs
+data CamModule : String -> Type where
+  TheModule : (s : String) -> CamModule s
 
-    
-    
+%inline
+camImport : CamModule s -> FFI.IO (ComRaw Ptr)
+camImport {s} _ =
+    camCall (String -> FFI.IO (ComRaw Ptr)) (Builtin "get_module") s
+
+%inline
+camImportFrom : ComRaw Ptr -> String -> ComRaw Ptr
+camImportFrom p s =
+  unsafePerformIO $
+    let fieldname = toForeign s in
+    camCall (ComRaw Ptr -> ComRaw String -> FFI.IO (ComRaw Ptr)) (Builtin "module_property") p fieldname

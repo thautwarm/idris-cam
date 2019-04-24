@@ -7,6 +7,12 @@ public export
 println : String -> IO ()
 println s = camCall (String -> IO ()) (Builtin "println") s
 
+||| print any foreign object
+public export
+%inline
+fprintln : ComRaw a -> IO ()
+fprintln s = camCall (ComRaw a -> IO ()) (Builtin "println") s
+
 
 public export
 %inline

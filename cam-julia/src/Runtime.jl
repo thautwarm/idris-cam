@@ -21,7 +21,7 @@ end
 
 is(_, _) = false
 
-function to_list_str(s)
+@inline function to_list_str(s)
     from_text(string(s))
 end
 
@@ -35,6 +35,10 @@ end
 
 function parse_double_from_list_str(s::IdrisString)
     parse_from_list_str(Float64, s)
+end
+
+@inline function module_property(m :: Module, s::String)
+    getproperty(m, Symbol(s))
 end
 
 export rt_support
@@ -110,7 +114,6 @@ rt_support = Dict{String, Any}(
     "builtin-str_to_foreign" => string,
 
     "builtin-map_hvect" => map_hvect,
-
-
+    "builtin-module_property" => module_property,
 )
 end
