@@ -128,10 +128,18 @@ ir_to_julia(ir::IR) =
         Fun([Sym(s) for s in args], Julia(body)) =>
             :(function ($(args...), ) $body end)
 
-        App(Internal("builtin-get_module"), [StrConst(Sym(c))]) => quote
-            @eval import $c
-            $c
-        end
+        App(Internal("builtin-get_module"), [StrConst(c)]) =>
+            let paths = map(Symbol, split(c, ".")),
+                imp = @match paths begin
+                    [] => throw("no module accessing path given! requires a path like `a.b.c`!")
+                    [x] => x
+                    _ => Expr(:., paths)
+                end
+                quote
+                    @eval import $imp
+                    $imp
+                end
+            end
 
         App(Julia(fn), [Julia(arg) for arg in args]) =>
             :($fn($(args...), ))

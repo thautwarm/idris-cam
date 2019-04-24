@@ -13,6 +13,9 @@ libs/test2.idr
 
 # emacs
 **~
+**\.#*
+**#*#
+
 
 # editors
 .idea/
