@@ -4,12 +4,16 @@ import Data.Vect
 
 %hide IO
 %access public export
-data Unsafe
+
+
+data UnsafeRaw;    
+data Boxed t = MkBoxed t
+    
+Unsafe : Type
+Unsafe = Boxed UnsafeRaw
 
 mutual
-
-    data Boxed t = MkBoxed t
-
+    
     data FList : Type -> Type where
         MockFList : (t: Type) -> FList t
 

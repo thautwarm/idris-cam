@@ -92,3 +92,39 @@ camImportFrom {mod_name} m str =
     let fieldname = believe_me $ the (Boxed String) $ toForeign str in
     fcall2 "module_property" (believe_me m) fieldname
 
+%inline
+unsafe : a -> Unsafe
+unsafe a = unsafePerformIO $ fcall1 "identity" (believe_me a)
+
+%inline
+unsafeCall : Unsafe -> Unsafe -> FFI.IO Unsafe
+unsafeCall f args = fcall2 "unsafe_call" f args
+
+
+
+implicit iList2FList : List (Boxed a) -> FList a
+iList2FList = toForeign
+
+implicit iVect2FVect : Vect n (Boxed a) -> FVect n a
+iVect2FVect = toForeign
+
+implicit iHVect2FHVect : {xs1: Vect n Type} ->  HVect (map Boxed xs1) -> FHVect xs1
+iHVect2FHVect = toForeign
+
+implicit iString2Text : String -> Boxed String
+iString2Text = toForeign
+
+implicit iFList2List : FList a -> List (Boxed a)
+iFList2List = toNative
+
+implicit iFVect2Vect : FVect n a -> Vect n (Boxed a)
+iFVect2Vect = toNative
+
+implicit iFHVect2HVect : {xs1: Vect n Type} ->  FHVect xs1 -> HVect (map Boxed xs1)
+iFHVect2HVect = toNative
+
+implicit iText2String : Boxed String -> String
+iText2String = toNative
+
+
+
