@@ -31,6 +31,13 @@ A framework for Idris RTS.
     stack exec idris -- --codegen=cam <input idris files> -o <output cam file>
     ```
 
+- Install to `.local`
+
+    ```
+	stack install
+	```
+	
+	After installing this, your `idris` command could use `cam` back end via `idris --codegen cam`.
 
 ## Python & Julia Example
 

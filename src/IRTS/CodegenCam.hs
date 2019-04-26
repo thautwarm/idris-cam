@@ -114,15 +114,20 @@ instance HasIR DExp where
         DForeign retTy fname xs ->
             let args = fmap (toIR . snd) xs in
             case fname of
+                FApp n [FStr name] | show n == "BuiltinVar"->
+                    if null xs then
+                        ComInternal $ "builtin-" ++ name
+                    else errorWithoutStackTrace "Accessing foreign variables requires no function arguments."
                 FApp n [FStr name] | show n == "Builtin" ->
-                        let f = ComInternal $ "builtin-" ++ name
-                        in  ComApp f args
+                    let f = ComInternal $ "builtin-" ++ name
+                    in  ComApp f args
+                FApp n [FStr mod, FStr name] | show n == "LibraryVar"->
+                    if null xs then
+                        ComInternal $ mod ++ "-" ++ name
+                    else errorWithoutStackTrace "Accessing foreign variables requires no function arguments."
                 FApp n [FStr mod, FStr name] | show n == "Library" ->
-                        let f = ComApp (ComInternal "builtin-module_property") [
-                                  ComStr mod,
-                                  ComStr name
-                                ]
-                        in ComApp f args
+                    let f = ComInternal $ mod ++ "-" ++ name
+                    in ComApp f args
                 op -> errorWithoutStackTrace $ "Not supported FFI ops :" ++ show op
 
         DOp primfn vars    -> ComApp (toIR primfn) $ fmap toIR vars

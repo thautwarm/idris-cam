@@ -6,14 +6,14 @@ import Data.Vect
 %access public export
 
 
-data UnsafeRaw;    
+data UnsafeRaw;
 data Boxed t = MkBoxed t
-    
+
 Unsafe : Type
 Unsafe = Boxed UnsafeRaw
 
 mutual
-    
+
     data FList : Type -> Type where
         MockFList : (t: Type) -> FList t
 
@@ -32,6 +32,8 @@ mutual
     data ForeignName
        = Builtin String
        | Library String String
+       | BuiltinVar String
+       | LibraryVar String String
 
     FFICam : FFI
     FFICam = MkFFI CamTypes ForeignName String
@@ -39,6 +41,9 @@ mutual
     public export
     IO : Type -> Type
     IO = IO' FFICam
+
+FFun0 : Type
+FFun0 = IO Unsafe
 
 FFun1 : Type
 FFun1 = Unsafe -> IO Unsafe
@@ -53,6 +58,14 @@ FFun3 = Unsafe -> Unsafe -> Unsafe -> IO Unsafe
 %inline
 fcall: (ty : Type) -> (fname : ForeignName) -> {auto fty : FTy FFICam [] ty} -> ty
 fcall ty fname = foreign FFICam fname ty
+
+%inline
+fvar : String -> IO Unsafe
+fvar n = fcall (IO Unsafe) (BuiltinVar n)
+
+%inline
+fcall0 : String -> IO Unsafe
+fcall0 n = fcall FFun0 (Builtin n)
 
 %inline
 fcall1 : String -> Unsafe -> IO Unsafe
