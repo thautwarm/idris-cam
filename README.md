@@ -36,8 +36,30 @@ A framework for Idris RTS.
     ```
 	stack install
 	```
-	
+
 	After installing this, your `idris` command could use `cam` back end via `idris --codegen cam`.
+
+- Usage within `idris` command.
+
+    ```
+    idris f1.idr f2.idr -o out.cam --codegen cam -p cam
+    ```
+
+- Run `.cam` files
+
+    - Idris-Python
+
+        You can check [Idris-Python](https://github.com/thautwarm/idris-python), and install it
+        via [pip](https://pypi.org/project/pip/) will give you a command `run-cam` which accepts
+        a filename of `.cam` file and executes it in Python.
+
+        Also, you can load `.cam` file in Python session, via [load_cam function](https://github.com/thautwarm/idris-python/blob/master/idris_python/cli.py#L69).
+
+    - Idris-Julia
+
+        Check [cam-julia/test/runtests.jl](https://github.com/thautwarm/idris-cam/blob/master/cam-julia/test/runtests.jl).
+
+        It hasn't been published yet.
 
 ## Python & Julia Example
 
@@ -70,9 +92,6 @@ import Data.HVect
 
 %access export
 
-f : StaticSized c => TypeHolder c -> Nat
-f d = typeSize d
-
 testSimple : FFI.IO ()
 testSimple = do
       -- In Julia, use "MLStyle" or other Julia module.
@@ -99,20 +118,10 @@ testSimple = do
 
 ### Test in Python
 
+Use `idris-python` command from [Idris-Python](https://github.com/thautwarm/idris-python). Change module name from `Test.Simple` to `Main` is okay.
+
 ```
-
-~/github/idris-cam | master> cd cam-python/test && python test.py
-
-<module 'sklearn' from '/home/redbq/Software/Anaconda/lib/python3.7/site-packages/sklearn/__init__.py'>
-<module 'sklearn.externals' from '/home/redbq/Software/Anaconda/lib/python3.7/site-packages/sklearn/externals/__init__.py'>
-啊，太懂了！太懂Idris Python辣！
-
-test hvec: [1.0, 5]
-.
-----------------------------------------------------------------------
-Ran 1 test in 0.177s
-
-OK
+idris-python main.idr
 ```
 
 ### Test in Julia
@@ -152,9 +161,9 @@ end
 @load_cam "./test.cam"
 ```
 
-For Python, there is a [`load_cal` function](https://github.com/thautwarm/idris-cam/blob/master/cam-python/test/test.py):
+For Python, there is a [`load_cal` function](https://github.com/thautwarm/idris-python/blob/master/idris_python/loader.py):
 
-```julia
+```python
 def load_cam(path, session):
     with open(path, 'r') as f:
         js = json.load(f)
@@ -169,8 +178,7 @@ create efficient tagged unions(ADTs, data types). In Julia, `Symbol` is an essen
 ## FFI Mechansim
 
 
-Thanks to the tasks of [New Foreign Function Interface](http://docs.idris-lang.org/en/latest/reference/ffi.html)
-, it makes our handy FFI feasible.
+Our handy FFI becomes feasible due to [New Foreign Function Interface](http://docs.idris-lang.org/en/latest/reference/ffi.html).
 
 ### Idris Side
 
@@ -178,19 +186,11 @@ In Idris side, we have made a FFI implementation for Idris-CAM, and then you can
 declare foreign functions via such codes:
 
 ```idris
-println : String -> CamIO ()
-println s = camCall (String -> CamIO ()) (Builtin "println") s
-
-data FileHandler;
-
-openFile : String -> CamIO (Com_Raw FileHandler)
-openFile filename = camCall (String -> CamIO (Com_Raw FileHandler)) (Builtin "simple_open") filename
-
-readFile : Com_Raw FileHandler -> CamIO String
-readFile handle = camCall (Com_Raw FileHandler -> CamIO String) (Builtin "simple_read") handle
+println : Unsafe -> FFI.IO Unsafe
+println s = fcall (Unsafe -> FFI.IO Unsafe) (Builtin "println") s
 ```
 
-Above codes are placed at [examples/test_ffi.cam](https://github.com/thautwarm/idris-cam/blob/master/examples/test_ffi.idr), and I'll make Idris libraries for both Julia and Python sooner.
+You can check [libs/Cam](https://github.com/thautwarm/idris-cam/blob/master/libs/Cam) for more information, and I'll make Idris libraries for both Julia and Python sooner.
 
 
 ### Target Back End
@@ -198,20 +198,18 @@ Above codes are placed at [examples/test_ffi.cam](https://github.com/thautwarm/i
 We have already Julia and Python back ends, and Python's is already available, so we use Python to demonstrate how
 to setup FFI.
 
-Note that we referenced `println`, `simple_open` and `simple_read` as builtin functions in previous Idris codes.
+Note that we referenced `println` as builtin functions in previous Idris codes.
 
-So we update `cam-python/idris-cam/runtime.py`, add their
-implementations:
+
+So we update [runtime.py](https://github.com/thautwarm/idris-python/blob/0c4fdb523658c521e789944a12eb235b7f67dc23/idris_python/runtime.py#L99), add its
+implementation:
 
 ```python
-rt_support = {
-    'idris-cam-rt.cmp': cmp,
-
-    'prim-plus': operator.add,
-    'prim-minus': operator.sub,
-    ...
-    'builtin-println': print,
-    'builtin-simple_open': open,
-    'builtin-simple_read': lambda x: x.read()
+    return {
+        'cam-rt.cmp': operator.eq,
+        'cam-rt.is': operator.is_,
+        ...
+        'builtin-println': print,
+        ...
 }
 ```

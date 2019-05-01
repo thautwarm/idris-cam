@@ -48,8 +48,6 @@ unittest.main()
 def load_cam_and_test(path):
     with open('../cam-julia/test/runtests.jl', 'w') as f:
         f.write(julia.format(path.strip()))
-    with open('../cam-python/test/test.py', 'w') as f:
-        f.write(python.format(repr(path.strip())))
 
 get_exe = re.compile(r"Uncaught error\:(?P<exe>[\s\S]+)\: rawSystem").search
 
