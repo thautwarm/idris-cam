@@ -51,7 +51,8 @@ executable idris-codegen-cam
       build-depends: unix < 2.8
    if os(windows)
       cpp-options:   -DWINDOWS
-      build-depends: Win32 < 2.4
+      build-depends: mintty >= 0.1 && < 0.2
+                   , Win32 < 2.7
 
    ghc-prof-options: -auto-all -caf-all
    ghc-options:      -threaded -rtsopts -funbox-strict-fields
